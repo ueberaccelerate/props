@@ -30,25 +30,27 @@ struct Serializable {
   Serializable(const char* name_, const char* desc_) : name{name_}, type_name{typeid(value).name()}, desc{desc_} {}
 };
 
-template<typename T>
-struct SerializableClass : Serializable<T> {
+template<ObjectType objectType, typename O>
+struct holder {
 
 };
+
+template<typename O>
+using Scalar = holder<ObjectType::scalar, Serializable<O>>;
+
+template<typename O>
+using Sequence = holder<ObjectType::sequence, Serializable<std::vector<O>>>;
+
+template<typename K, typename O>
+using Map = holder<ObjectType::map, Serializable<std::map<K, O>>>;
 
 #define serializable_v(param_name, param_type, param_name_text, param_desc) \
   private: \
     Serializable<param_type>  param_name{ # param_name, param_desc}; 
 
-#define serializable_c(param_name, param_type, param_name_text, param_desc) \
-  private: \
-    SerializableClass<param_type>  param_name{ # param_name, param_desc}; 
-
 #define serializable(param_name, param_type, param_desc) serializable_v(param_name, param_type, param_name, param_desc)
 
-#define serialize_this(type_name)  \
-  serializable_c(this_serialize, type_name, # type_name); \
-  public: \
-  friend YAML::Emitter& operator<<(YAML::Emitter& emitter, const type_name &);
+#define serializethis(type_name)  
 
 class SerializeSystem {
   public:
@@ -66,7 +68,7 @@ class SerializeSystem {
 
 
 class Test {
-serialize_this(Test);
+serializethis(Test);
 serializable(param, int, "int value");
 serializable(param2, std::vector<int>, "vector int value");
   public:

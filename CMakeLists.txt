@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.2)
 project (example)
-add_subdirectory(yaml-cpp)
+#add_subdirectory(yaml-cpp)
 add_executable( yaml-prop main.cpp)
 target_compile_features(yaml-prop PUBLIC cxx_std_17)
-target_link_libraries(yaml-prop PUBLIC yaml-cpp)
+#target_link_libraries(yaml-prop PUBLIC yaml-cpp)

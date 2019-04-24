@@ -48,6 +48,7 @@ struct Serializable {
   Serializable(const char* name_, const char* desc_, const char* type_name_) : name{name_}, type_name{type_name_}, desc{desc_}, value{} {}
 };
 
+
 template<ObjectType objectType, typename O>
 struct holder;
 
@@ -57,24 +58,21 @@ struct holder<ObjectType::serialize, Serializable<O>> {
   type holder_object;
   std::vector<YAML::Node*> childs;
   YAML::Node root_class;
-  holder(const char* name_, const char* desc_) : holder_object{name_, desc_, "serialize"}, childs{} {
-    root_class[name_] = "!<serialize>";
+  public:
+  holder(const char* name_, const char* desc_, const char* type_name_) : holder_object{name_, desc_, type_name_}, childs{} {
+    root_class[name_] = type_name_;
     root_class[(std::string(name_) + "_desc").data()] = desc_;
   }
-
+  virtual ~holder() {}
   void serialize() {
      YAML::Emitter out;
      out << YAML::BeginMap;
      out << root_class;
-     for( auto *child : childs ) {
+     for( auto child : childs ) {
         out << *child;
      }
      out << YAML::EndMap;
      std::cout << "yaml\n" << out.c_str() << std::endl;
-  }
-
-  void print() {
-    //std::cout << ": !<" << holder_object.type_name << "> " << holder_object.name <<" ("<< holder_object.desc <<")\n";
   }
 };
 
@@ -82,21 +80,12 @@ template<typename O>
 struct holder<ObjectType::scalar, O> {
   using type = Serializable<O>;
   type holder_object;
-  holder(const char* name_, const char* desc_, std::vector<YAML::Node*>& childs) : holder_object{name_, desc_, "scalar"}{ 
-    std::cout << std::is_same_v<O, holder<ObjectType::serialize, Serializable<O>>> << '\n';
-    if constexpr (std::is_fundamental_v<O>) {
+
+  holder(const char* name_, const char* desc_, const char* type_name_, std::vector<YAML::Node*>& childs) : holder_object{name_, desc_, "scalar"}{ 
       childs.push_back(&holder_object.node);
       holder_object.value = 42;
       holder_object.node[holder_object.name.data()] = holder_object.value;
       holder_object.node[(std::string(holder_object.name.data()) + std::string("_desc")).data()] = holder_object.desc.data();
-    } else {
-    //  holder_object.value.serializer.holder_object.name = name_;
-    //  holder_object.value.serializer.holder_object.desc = desc_;
-    //  childs.push_back(&holder_object.value.serializer.root_class);
-     // for(auto *child : childs) { 
-     //   childs.push_back(child);
-     // }
-    }
   }
   void print() {
     //std::cout << holder_object.name << ": !<" << holder_object.type_name << "> " << holder_object.value <<" ("<< holder_object.desc <<")\n";
@@ -145,11 +134,10 @@ struct holder<ObjectType::map, Serializable<std::map<K, O>>> {
   }
 };
 
-
 template<typename O>
 using Serialize = holder<ObjectType::serialize, Serializable<O>>;
 template<typename O>
-using Scalar = holder<ObjectType::scalar, O>;
+using Scalar = std::conditional_t<        std::is_base_of_v<holder<ObjectType::serialize, Serializable<O>>, O>,        O,           holder<ObjectType::scalar, O>>;
 template<typename O>
 using Sequence = holder<ObjectType::sequence, Serializable<std::vector<O>>>;
 template<typename K, typename O>
@@ -157,52 +145,57 @@ using Map = holder<ObjectType::map, Serializable<std::map<K, O>>>;
 
 #define serializable_s(param_name, param_type, param_name_text, param_desc) \
   private: \
-    Scalar<param_type>  param_name{ # param_name, param_desc, this->serializer.childs}; 
+    Scalar<param_type>  param_name{ # param_name, param_desc, #param_type, this->childs}; 
 
 #define serializable_v(param_name, param_type, param_name_text, param_desc) \
   private: \
-    Sequence<param_type>  param_name{ # param_name, param_desc, this->serializer.childs}; 
+    Sequence<param_type>  param_name{ # param_name, param_desc, this->childs}; 
 
 #define serializable_m(param_name, param_type1, param_type2, param_name_text, param_desc) \
   private: \
-    Map<param_type1, param_type2>  param_name{ # param_name, param_desc, this->serializer.childs}; 
+    Map<param_type1, param_type2>  param_name{ # param_name, param_desc, this->childs}; 
 
 #define SCALAR(param_name, param_type, param_desc) serializable_s(param_name, param_type, param_name, param_desc)
 #define SEQUENCE(param_name, param_type, param_desc) serializable_v(param_name, param_type, param_name, param_desc)
 #define MAP(param_name, param_type1, param_type2, param_desc) serializable_m(param_name, param_type1, param_type2, param_name, param_desc)
 
-#define serializethis(type_name, desc) \
+#define serializethis(type_name) \
+  public Serialize<type_name> 
+#define CONSTRUCTORS(class_name) \
   public: \
-    using type = std::true_type; \
-    Serialize<type_name> serializer{#type_name, desc};
+  class_name(const std::string_view &class_name, const std::string_view &desc) : holder{class_name.data(), desc.data(), "Test2"} {} \
+  class_name(const std::string_view &class_name, const std::string_view &desc, const std::string_view&type_name, std::vector<YAML::Node*> &childs_) : holder{class_name.data(), desc.data(), "Test"} { \
+    childs_.push_back(&root_class); \
+    for(auto child : childs) { \
+      childs_.push_back(child); \
+    } \
+  }
 
-class Test {
-  serializethis(Test, "The test class that you can ser/des")
-//  SCALAR  (param,  float, "float value");
+class Test final : serializethis(Test) {
+  SCALAR  (param,  float, "float value 2");
+  SCALAR  (param2,  float, "float value 2");
+  SCALAR  (param3,  float, "float value 2");
 //  SEQUENCE(param2, int, "int sequence value");
 //  MAP     (param3, int, int, "int map value");
   public:
-  Test() = default;
-  void print() {
-
-  }
+  CONSTRUCTORS(Test)
 };
-class Test2 {
-  serializethis(Test2, "The test2 class that you can ser/des")
+class Test2 final : serializethis(Test2){
+//  serializethis(Test2, "The test2 class that you can ser/des")
   SCALAR  (param,  float, "float value");
+  SCALAR  (param2,  float, "float value");
+  SCALAR  (param3,  double, "double value");
+  SCALAR  (param4,  int, "int value");
+  SCALAR  (param5,  char, "char value");
 //  SEQUENCE(param2, int, "int sequence value");
 //  MAP     (param3, int, int, "int map value");
-  SCALAR  (param4,  Test, "Test value");
-
-  public:
-  void print() {
-    serializer.serialize();
-  }
+  SCALAR  (param6,  Test, "Test value");
+  CONSTRUCTORS(Test2)
 };
 
 int main() {
-  Test2 t;
-  t.print();
+  Test2 t{"t", "The test2 class"};
+  t.serialize();
 //  serialize::core::serialize("t", t);
   //std::string line = "param: !<float> 3.14000\n";
   //std::cout << line;

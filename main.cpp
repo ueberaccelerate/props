@@ -86,6 +86,7 @@ struct holder<ObjectType::serialize, Serializable<O>> {
   //   YAML::Emitter out;
   //   out << YAML::BeginMap;
   //   out << root_class;
+     holder_object.serialize();
      for( auto child : childs ) {
        child->serialize();
      }

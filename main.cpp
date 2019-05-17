@@ -1,25 +1,7 @@
-/*
- *            DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
- *                    Version 2, December 2004
- *
- * Copyright (C) 2019 Suboch, Vadim <vssuboch@gmail.com>
- *
- * Everyone is permitted to copy and distribute verbatim or modified
- * copies of this license document, and changing it is allowed as long
- * as the name is changed.
- *
- *            DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
- *   TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
- *
- *  0. You just DO WHAT THE FUCK YOU WANT TO.
- */
-
 #include <yaml-cpp/yaml.h>
-//
+
 #include <vector>
 #include <map>
-
-
 #include <iostream>
 #include <string_view>
 #include <fstream>
@@ -83,22 +65,15 @@ struct holder<ObjectType::serialize, Serializable<O>> {
 
   virtual ~holder() {}
   void serialize() {
-  //   YAML::Emitter out;
-  //   out << YAML::BeginMap;
-  //   out << root_class;
      holder_object.serialize();
      for( auto child : childs ) {
        child->serialize();
      }
-  //   out << YAML::EndMap;
-  //   std::cout << "yaml\n" << out.c_str() << std::endl;
   }
 };
 
 template<typename T>
 constexpr bool is_base_of_holder = std::is_base_of_v<holder<ObjectType::serialize, Serializable<T>>, T>;
-
-
 
 template<typename T>
 struct base_holder{
@@ -214,9 +189,6 @@ class Test2 final : serializethis(Test2){
   SCALAR  (param6,  Test, "Test value");
   CONSTRUCTORS(Test2)
 };
-
-
-
 
 int main() {
   Test2 t{"t", "The test2 class"};

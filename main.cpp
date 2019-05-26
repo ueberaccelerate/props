@@ -1,5 +1,7 @@
 #include <yaml-cpp/yaml.h>
 
+#include <ueberlog/ueberlog.hpp>
+
 #include <vector>
 #include <map>
 #include <iostream>
@@ -29,7 +31,9 @@ struct SerializeNode {
   YAML::Node node;
   std::function<void ()> serialize;
   std::function<void ()> deserialize;
-  SerializeNode(const char* name_, const char* desc_, const char* type_name_) : name{name_}, type_name{type_name_}, desc{desc_} {}
+  SerializeNode(const char* name_, const char* desc_, const char* type_name_) : name{name_}, type_name{type_name_}, desc{desc_} {
+    DEBUG("created node: %s %s %s \n", name_, desc_, type_name_);
+  }
 };
 
 template<typename T>
@@ -56,6 +60,7 @@ struct holder<ObjectType::serialize, Serializable<O>> {
   YAML::Node root_class;
   public:
   holder(const char* name_, const char* desc_, const char* type_name_) : holder_object{name_, desc_, type_name_}, childs{} {
+    DEBUG("created holder object: %s\n", name_);
     root_class[name_] = type_name_;
     root_class[(std::string(name_) + "_desc").data()] = desc_;
     holder_object.serialize = [&] () {
@@ -191,7 +196,9 @@ class Test2 final : serializethis(Test2){
 };
 
 int main() {
+  DEBUG("yaml start serialize\n");
   Test2 t{"t", "The test2 class"};
+
   t.serialize();
 
   return 0;

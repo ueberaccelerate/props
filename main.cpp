@@ -1,5 +1,3 @@
-#include <yaml-cpp/yaml.h>
-
 #include <ueberlog/ueberlog.hpp>
 
 #include <vector>
@@ -28,7 +26,6 @@ struct SerializeNode {
   std::string_view name;
   std::string_view type_name;
   std::string_view desc;
-  YAML::Node node;
   std::function<void ()> serialize;
   std::function<void ()> deserialize;
   SerializeNode(const char* name_, const char* desc_, const char* type_name_) : name{name_}, type_name{type_name_}, desc{desc_} {
@@ -42,10 +39,6 @@ struct Serializable : SerializeNode {
   Serializable(const char* name_, const char* desc_, const char* type_name_) : SerializeNode{name_, desc_, type_name_} { 
   }
 
-  void deserialize(const YAML::Node &n, T& value) {
-    std::cout << n[name.data()];
-  }
-
 };
 
 
@@ -57,12 +50,9 @@ struct holder<ObjectType::serialize, Serializable<O>> {
   using type = Serializable<O*>;
   type holder_object;
   std::vector<SerializeNode*> childs;
-  YAML::Node root_class;
   public:
   holder(const char* name_, const char* desc_, const char* type_name_) : holder_object{name_, desc_, type_name_}, childs{} {
     DEBUG("created holder object: %s\n", name_);
-    root_class[name_] = type_name_;
-    root_class[(std::string(name_) + "_desc").data()] = desc_;
     holder_object.serialize = [&] () {
       std::cout << holder_object.name << " " << holder_object.type_name << "\n";
     };
@@ -92,8 +82,6 @@ struct holder<ObjectType::scalar, O> : base_holder<O> {
 
   holder(const char* name_, const char* desc_, const char* type_name_) : holder_object{name_, desc_, "scalar"}{ 
       holder_object.value = 42;
-      holder_object.node[holder_object.name.data()] = holder_object.value;
-      holder_object.node[(std::string(holder_object.name.data()) + std::string("_desc")).data()] = holder_object.desc.data();
       holder_object.serialize = [&] () {
         std::cout << holder_object.name << " " << holder_object.type_name << '\n';
       };
@@ -105,12 +93,10 @@ struct holder<ObjectType::scalar, O> : base_holder<O> {
       };
       childs.push_back(&holder_object);
       holder_object.value = 42;
-      holder_object.node[holder_object.name.data()] = holder_object.value;
-      holder_object.node[(std::string(holder_object.name.data()) + std::string("_desc")).data()] = holder_object.desc.data();
   }
   void set(const O &value) {
+    DEBUG( "set new value \n" );
     holder_object.value = value;
-    holder_object.node[holder_object.name.data()] = value;
   }
 };
 
@@ -121,7 +107,6 @@ struct holder<ObjectType::sequence, std::vector<O>> {
   holder(const char* name_, const char* desc_, const char* type_name_, std::vector<SerializeNode*>& childs) : holder_object{name_, desc_, "sequence"} { 
       childs.push_back(&holder_object);
       holder_object.value = {};
-      holder_object.node[holder_object.name.data()] = holder_object.value;
       holder_object.serialize = [&] () {
         std::cout << holder_object.name << " " << holder_object.type_name << "\n";
       };
@@ -163,8 +148,8 @@ using Map = holder<ObjectType::map, Serializable<std::map<K, O>>>;
 #define SEQUENCE(param_name, param_type, param_desc) serializable_v(param_name, param_type, param_name, param_desc)
 #define MAP(param_name, param_type1, param_type2, param_desc) serializable_m(param_name, param_type1, param_type2, param_name, param_desc)
 
-#define serializethis(type_name) \
-  public Serialize<type_name> 
+#define SERIALIZETHIS(type_name) \
+  final : public Serialize<type_name> 
 #define CONSTRUCTORS(class_name) \
   public: \
   class_name(const std::string_view &name_, const std::string_view &desc_) : holder{name_.data(), desc_.data(), #class_name} {} \
@@ -173,7 +158,7 @@ using Map = holder<ObjectType::map, Serializable<std::map<K, O>>>;
     std::copy(std::begin(childs), std::end(childs),  std::back_inserter(childs_)); \
   }
 
-class Test final : serializethis(Test) {
+class Test SERIALIZETHIS(Test) {
   SEQUENCE(param7, int, "int sequence value");
   SEQUENCE(param8, int, "int sequence value");
   SEQUENCE(param9, int, "int sequence value");
@@ -182,7 +167,7 @@ class Test final : serializethis(Test) {
   public:
   CONSTRUCTORS(Test)
 };
-class Test2 final : serializethis(Test2){
+class Test2 SERIALIZETHIS(Test2){
 //  serializethis(Test2, "The test2 class that you can ser/des")
   SCALAR  (param1,  float, "float value");
   SCALAR  (param2,  float, "float value");

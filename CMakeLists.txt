@@ -12,20 +12,18 @@ add_library( propertysdk-cppwarnings INTERFACE )
 
 target_compile_features( propertysdk-cppfeatrues INTERFACE cxx_std_17 )
 
-target_include_directories( propertysdk-cppfeatrues INTERFACE include )
 
 set_project_warinigs( propertysdk-cppwarnings )
 
-add_library( propertysdk 
+add_library( propertysdk )
 
-# $(CMAKE_CURRENT_SOURCE_DIR}/include/property/
-  main.cpp
-)
-target_link_libraries( propertysdk PRIVATE propertysdk-cppfeatrues propertysdk-cppwarnings ueberlog)
+set_dependency( propertysdk PUBLIC )
 
-#add_subdirectory(ueberlog)
-#
-##add_subdirectory(yaml-cpp)
-#add_executable( yaml-prop main.cpp)
-#target_compile_features(yaml-prop PUBLIC cxx_std_17)
-#target_link_libraries(yaml-prop PUBLIC ueberlog)
+add_subdirectory( src )
+
+target_include_directories( propertysdk PUBLIC src/include )
+target_link_libraries( propertysdk PUBLIC propertysdk-cppfeatrues PRIVATE propertysdk-cppwarnings )
+
+# examples
+add_executable( propertysdk-example main.cpp)
+target_link_libraries( propertysdk-example PRIVATE propertysdk )

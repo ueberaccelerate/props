@@ -1,9 +1,34 @@
-#include <ueberlog/ueberlog.hpp>
+#include <property/property.hpp>
 
-int main() {}
+#include <iostream>
 
-//#include <ueberlog/ueberlog.hpp>
-//
+class Test SERIALIZETHIS(Test) {
+  SCALAR(age, int, "age of test");
+  SCALAR(name, std::string, "name of test");
+  public:
+  
+  CONSTRUCTORS(Test)
+};
+
+int main() {
+  int version = property::property_version();
+  int major = version >> 16;
+  int minor = version & 0xFF;
+  
+  std::cout << "version: " << version << "\n";
+  std::cout << "major: " <<  major << "\n";
+  std::cout << "minor: " <<  minor << "\n";
+  
+  Test test("test", "simple test serialization");
+  test.serialize([](std::string serdata){
+    // save it to file
+  });
+  
+  std::string serddata_from_file;
+  test.deserialize(serddata_from_file);
+  // test ready to use;
+}
+
 //#include <vector>
 //#include <map>
 //#include <iostream>
@@ -12,97 +37,8 @@ int main() {}
 //#include <cmath>
 //#include <functional>
 //#include <type_traits>
-//
-///*
-// *  case Scalar: // ...
-// *  case Sequence: // ...
-// *  case Map: // ...
-// *
-// * */
-//enum class ObjectType {
-//  serialize,
-//  scalar,
-//  sequence,
-//  map
-//};
-//
-//struct SerializeNode {
-//  std::string_view name;
-//  std::string_view type_name;
-//  std::string_view desc;
-//  std::function<void ()> serialize;
-//  std::function<void ()> deserialize;
-//  SerializeNode(const char* name_, const char* desc_, const char* type_name_) : name{name_}, type_name{type_name_}, desc{desc_} {
-//    DEBUG("created node: %s %s %s \n", name_, desc_, type_name_);
-//  }
-//};
-//
-//template<typename T>
-//struct Serializable : SerializeNode {
-//  T value;
-//  Serializable(const char* name_, const char* desc_, const char* type_name_) : SerializeNode{name_, desc_, type_name_} { 
-//  }
-//
-//};
-//
-//
-//template<ObjectType objectType, typename O>
-//struct holder;
-//
-//template<typename O>
-//struct holder<ObjectType::serialize, Serializable<O>> {
-//  using type = Serializable<O*>;
-//  type holder_object;
-//  std::vector<SerializeNode*> childs;
-//  public:
-//  holder(const char* name_, const char* desc_, const char* type_name_) : holder_object{name_, desc_, type_name_}, childs{} {
-//    DEBUG("created holder object: %s\n", name_);
-//    holder_object.serialize = [&] () {
-//      std::cout << holder_object.name << " " << holder_object.type_name << "\n";
-//    };
-//  }
-//
-//  virtual ~holder() {}
-//  void serialize() {
-//     holder_object.serialize();
-//     for( auto child : childs ) {
-//       child->serialize();
-//     }
-//  }
-//};
-//
-//template<typename T>
-//constexpr bool is_base_of_holder = std::is_base_of_v<holder<ObjectType::serialize, Serializable<T>>, T>;
-//
-//template<typename T>
-//struct base_holder{
-//  using basename = T;
-//};
-//
-//template<typename O>
-//struct holder<ObjectType::scalar, O> : base_holder<O> {
-//  using type = Serializable<O>;
-//  type holder_object;
-//
-//  holder(const char* name_, const char* desc_, const char* type_name_) : holder_object{name_, desc_, "scalar"}{ 
-//      holder_object.value = 42;
-//      holder_object.serialize = [&] () {
-//        std::cout << holder_object.name << " " << holder_object.type_name << '\n';
-//      };
-//  }
-//
-//  holder(const char* name_, const char* desc_, const char* type_name_, std::vector<SerializeNode*>& childs) : holder_object{name_, desc_, "scalar"}{ 
-//      holder_object.serialize = [&] () {
-//        std::cout << holder_object.name << " " << holder_object.type_name << '\n';
-//      };
-//      childs.push_back(&holder_object);
-//      holder_object.value = 42;
-//  }
-//  void set(const O &value) {
-//    DEBUG( "set new value \n" );
-//    holder_object.value = value;
-//  }
-//};
+
+
 //
 //template<typename O>
 //struct holder<ObjectType::sequence, std::vector<O>> {

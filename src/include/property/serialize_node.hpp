@@ -1,6 +1,7 @@
 #ifndef PROPERTY_SERIALIZE_NODE_HPP
 #define PROPERTY_SERIALIZE_NODE_HPP
 
+#include <string>
 #include <string_view>
 #include <functional>
 #include <queue>
@@ -30,16 +31,21 @@ namespace property {
         map
     };
 
-    struct SerializeNode {
-        using SerializeQueue = std::queue<std::string>;
-        using VoidFunction = std::function < void( SerializeQueue &) >;
-        struct Impl;
-        std::unique_ptr<Impl> impl;
-      
+    struct SerializeInfo {
         std::string_view name;
         std::string_view type_name;
         std::string_view desc;
         ObjectType object_type;
+        std::string data;
+    };
+
+    struct SerializeNode: SerializeInfo {
+        using SerializeQueue = std::queue<SerializeInfo>;
+        using VoidFunction = std::function < void( SerializeQueue &) >;
+        struct Impl;
+        std::unique_ptr<Impl> impl;
+      
+
       
         VoidFunction serialize;
         VoidFunction deserialize;

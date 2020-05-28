@@ -16,23 +16,42 @@ struct SerializeNode::Impl {
 // it need to unique_ptr forward declaration
 SerializeNode::~SerializeNode() = default;
 
-SerializeNode::SerializeNode(const char *name, const char *desc, const char *type_name, const ObjectType object_type) : impl{std::make_unique<SerializeNode::Impl>(this)}, name{name}, type_name{type_name}, desc{desc}, object_type{object_type}
+SerializeNode::SerializeNode(const char *name, const char *desc, const char *type_name, const ObjectType object_type) :  SerializeInfo{name, type_name, desc, object_type, ""}, impl{std::make_unique<SerializeNode::Impl>(this)}
 {
     DEBUG("created node: %s %s %s \n", name, desc, type_name);
 }
 
-std::string SerializeNode::commit(const SerializeQueue &out) {
-  SerializeQueue buffer = out;
-  while (!buffer.empty()) {
-    auto &element = buffer.front();
-    buffer.pop();
-    DEBUG("%s\n", element.data());
-  }
-  return "";
-//  for(auto& [key, value] : out) {
-//    DEBUG("%s %s\n", key.data(), value.data());
-//  }
+std::string SerializeNode::commit(const SerializeQueue &out)
+{
+    SerializeQueue buffer = out;
+    YAML::Emitter emitter;
+    YAML::Node root;
+    while (!buffer.empty()) {
+        auto &element = buffer.front();
+        buffer.pop();
+        if (element.object_type == ObjectType::serialize) {
+            std::stringstream stream;
+            stream << element.type_name << ":" << element.desc;
+            if(root.IsNull()) {
+                root[element.name.data()] = stream.str();
+            } else {
+                YAML::Node node;
+                node[element.name.data()] = stream.str();
+                root["childs"].push_back(node);
+            }
+        }
+        if (element.object_type == ObjectType::scalar) {
+            YAML::Node node;
+            std::stringstream stream;
+            stream << element.data << ":" << element.type_name << ":" << element.desc;
+            node[element.name.data()] = stream.str();
+            root["childs"].push_back(node);
+        }
+    }
+    emitter << root;
+    return emitter.c_str();
 }
+
 //void SerializeNode::serialization(VoidFunction serializator)
 //{
 //  /*
@@ -45,7 +64,7 @@ std::string SerializeNode::commit(const SerializeQueue &out) {
 //    std::strstream root_stream;
 //    root_stream <<  type_name.data() << " " << desc.data();
 //    root[name.data()] = root_stream.str();
-//    
+//
 //    {
 //      std::strstream prop_stream;
 //      YAML::Node prop;
@@ -53,7 +72,7 @@ std::string SerializeNode::commit(const SerializeQueue &out) {
 //      prop["age"] = prop_stream.str();
 //      root["childs"].push_back(prop);
 //    }
-//    
+//
 ////    out << YAML::BeginDoc;
 //    out << root;
 ////    out << YAML::EndDoc;
@@ -67,8 +86,8 @@ std::string SerializeNode::commit(const SerializeQueue &out) {
 ////    root << YAML::Value << desc.data();
 ////
 ////    root << YAML::EndMap;
-//  
-//    
+//
+//
 //
 //    DEBUG("output:\n%s\n", out.c_str());
 //}

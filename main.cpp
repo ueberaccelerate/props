@@ -10,6 +10,34 @@ class Test SERIALIZETHIS(Test) {
   CONSTRUCTORS(Test)
 };
 
+class Test2 SERIALIZETHIS(Test2) {
+  SCALAR(age, int, "age of test");
+//  SCALAR(name, std::string, "name of test");
+  SCALAR(test1, Test, "name of test");
+//  SCALAR(test2, Test, "name of test");
+//  SCALAR(test3, Test, "name of test");
+//  SCALAR(test4, Test, "name of test");
+//  SCALAR(test5, Test, "name of test");
+//  SCALAR(test6, Test, "name of test");
+//  SCALAR(name3, std::string, "name of test");
+  public:
+  
+  CONSTRUCTORS(Test2)
+};
+class Test3 SERIALIZETHIS(Test3) {
+  SCALAR(age, int, "age of test");
+//  SCALAR(name, std::string, "name of test");
+  SCALAR(test1, Test2, "name of test");
+//  SCALAR(test2, Test, "name of test");
+//  SCALAR(test3, Test, "name of test");
+//  SCALAR(test4, Test, "name of test");
+//  SCALAR(test5, Test, "name of test");
+//  SCALAR(test6, Test, "name of test");
+  SCALAR(name3, std::string, "name of test");
+  public:
+  
+  CONSTRUCTORS(Test3)
+};
 int main() {
   int version = property::property_version();
   int major = version >> 16;
@@ -18,14 +46,17 @@ int main() {
   std::cout << "version: " << version << "\n";
   std::cout << "major: " <<  major << "\n";
   std::cout << "minor: " <<  minor << "\n";
-  
-  Test test("test", "simple test serialization");
-  test.serialize([](std::string serdata){
+
+  Test3 test("test", "simple test serialization");
+  test.age.set(42);
+//  test.name.set("vadya");
+  test.serialize([](const std::string &serdata){
     // save it to file
+    std::cout << "output:\n" << serdata << "\n";
   });
   
-  std::string serddata_from_file;
-  test.deserialize(serddata_from_file);
+//  std::string serddata_from_file;
+//  test.deserialize(serddata_from_file);
   // test ready to use;
 }
 

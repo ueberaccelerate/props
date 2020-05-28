@@ -13,32 +13,35 @@
 
 #include <ueberlog/ueberlog.hpp>
 
+#include <sstream>
+
 namespace property {
 
 template<typename O>
 struct holder<ObjectType::scalar, O> : base_holder<O> {
   using type = Serializable<O>;
   type holder_object;
-  
-  holder() : holder_object{"int_value", "int_value_desc", "scalar", ObjectType::scalar} {
-    holder_object.serialize = [&] () {
-      DEBUG("%s %s\n", holder_object.name.data(), holder_object.type_name.data());
+private:
+  void setup_scalar_holder() {
+    holder_object.serialize = [&] (SerializeNode::SerializeQueue& out) {
+      std::stringstream data_stream;
+      data_stream << holder_object.value;
+      holder_object.data = data_stream.str();
+      out.push(holder_object);
     };
+  }
+public:
+  holder() : holder_object{"int_value", "int_value_desc", "scalar", ObjectType::scalar} {
+    setup_scalar_holder();
   }
   
   holder(const char* name, const char* desc, PROPERTY_UNUSED const char* type_name) : holder_object{name, desc, "scalar", ObjectType::scalar}{
-      holder_object.serialize = [&] () {
-        DEBUG("%s %s\n", holder_object.name.data(), holder_object.type_name.data());
-      };
+      setup_scalar_holder();
   }
 
-  holder(const char* name_, const char* desc_, PROPERTY_UNUSED const char* type_name_, std::vector<SerializeNode*>& childs) : holder_object{name_, desc_, "scalar", ObjectType::scalar}{
-    holder_object.serialize = [&] (SerializeNode::SerializeQueue& out) {
-      out.push(holder_object.name.data());
-//        out[holder_object.name.data()] = holder_object.type_name.data();
-      };
+  holder(const char* name_, const char* desc_, PROPERTY_UNUSED const char* type_name_, std::vector<SerializeNode*>& childs) : holder_object{name_, desc_, "scalar", ObjectType::scalar} {
+      setup_scalar_holder();
       childs.push_back(&holder_object);
-      holder_object.value = 42;
   }
   void set(const O &value) {
     DEBUG( "set new value \n" );
@@ -56,7 +59,7 @@ struct holder<ObjectType::scalar, O> : base_holder<O> {
     // when serialize is completed
     // then return yaml node
     holder_object.serialize(out);
-    holder_object.commit(out);
+    completed(holder_object.commit(out));
   }
   
   template <typename Function>

@@ -21,7 +21,6 @@ namespace property {
 
 #define SCALAR(param_name, param_type, param_desc) serializable_s(param_name, param_type, param_name, param_desc)
 
-
 #define SERIALIZETHIS(type_name) \
  final: public property::Serialize < type_name >
 
@@ -31,7 +30,6 @@ public: \
     class_name(const std::string_view &name_, const std::string_view &desc_) : holder { name_.data(), desc_.data(), #class_name } {} \
     class_name(const std::string_view &name_, const std::string_view &desc_, const std::string_view& type_name_, std::vector < property::SerializeNode * > &childs_) : holder { name_.data(), desc_.data(), type_name_.data() } { \
         childs_.push_back(&holder_object); \
-        std::copy(std::begin(childs), std::end(childs),  std::back_inserter(childs_)); \
     }
 
 #endif // PROPERY_PROPERY_HPP

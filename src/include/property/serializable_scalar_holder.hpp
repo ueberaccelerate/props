@@ -35,11 +35,11 @@ public:
     setup_scalar_holder();
   }
   
-  holder(const char* name, const char* desc, PROPERTY_UNUSED const char* type_name) : holder_object{name, desc, "scalar", ObjectType::scalar}{
+  holder(const char* name, const char* desc, PROPERTY_UNUSED const char* type_name) : holder_object{name, desc, type_name, ObjectType::scalar}{
       setup_scalar_holder();
   }
 
-  holder(const char* name_, const char* desc_, PROPERTY_UNUSED const char* type_name_, std::vector<SerializeNode*>& childs) : holder_object{name_, desc_, "scalar", ObjectType::scalar} {
+  holder(const char* name_, const char* desc_, PROPERTY_UNUSED const char* type_name_, std::vector<SerializeNode*>& childs) : holder_object{name_, desc_, type_name_, ObjectType::scalar} {
       setup_scalar_holder();
       childs.push_back(&holder_object);
   }
@@ -75,6 +75,6 @@ using Scalar = std::conditional_t< is_base_of_holder<O>, O, holder<ObjectType::s
 
 #define serializable_s(param_name, param_type, param_name_text, param_desc) \
   public: \
-    property::Scalar<param_type>  param_name{ # param_name, param_desc, #param_type, this->childs};
+property::Scalar<param_type>  param_name{ # param_name, param_desc, property::deduce_prop_type_name(param_type{}).data(), this->childs};
 
 #endif // PROPERTY_SERIALIZABLE_SCALAR_HOLDER_HPP

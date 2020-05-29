@@ -16,6 +16,9 @@ struct SerializeNode::Impl {
 // it need to unique_ptr forward declaration
 SerializeNode::~SerializeNode() = default;
 
+SerializeNode::SerializeNode() : impl{std::make_unique<SerializeNode::Impl>(this)} {
+    
+}
 SerializeNode::SerializeNode(const char *name, const char *desc, const char *type_name, const ObjectType object_type) :  SerializeInfo{name, type_name, desc, object_type, ""}, impl{std::make_unique<SerializeNode::Impl>(this)}
 {
     DEBUG("created node: %s %s %s \n", name, desc, type_name);

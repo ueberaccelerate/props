@@ -6,6 +6,8 @@
 #include <functional>
 #include <queue>
 
+#include <yaml-cpp/yaml.h>
+
 //#include <vector>
 //#include <map>
 //#include <iostream>
@@ -16,6 +18,12 @@
 //#include <type_traits>
 
 namespace property {
+template < typename T >
+constexpr std::string_view deduce_prop_type_name(T && type)
+{
+    return "int";
+}
+
 /*
 *
 *    ObjectType:
@@ -49,7 +57,8 @@ namespace property {
       
         VoidFunction serialize;
         VoidFunction deserialize;
-
+        
+        SerializeNode();
         SerializeNode(const char *name, const char *desc, const char *type_name, const ObjectType object_type);
         ~SerializeNode();
         

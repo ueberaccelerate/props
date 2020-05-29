@@ -2,62 +2,148 @@
 
 #include <iostream>
 
-class Test SERIALIZETHIS(Test) {
-  SCALAR(age, int, "age of test");
-  SCALAR(name, std::string, "name of test");
-  public:
-  
-  CONSTRUCTORS(Test)
-};
+class Test SERIALIZETHIS(Test)
+{
+    SCALAR(age, int, "age of test");
+    SCALAR(name, std::string, "name of test");
+    public:
 
-class Test2 SERIALIZETHIS(Test2) {
-  SCALAR(age, int, "age of test");
-//  SCALAR(name, std::string, "name of test");
-  SCALAR(test1, Test, "name of test");
-//  SCALAR(test2, Test, "name of test");
-//  SCALAR(test3, Test, "name of test");
-//  SCALAR(test4, Test, "name of test");
-//  SCALAR(test5, Test, "name of test");
-//  SCALAR(test6, Test, "name of test");
-//  SCALAR(name3, std::string, "name of test");
-  public:
-  
-  CONSTRUCTORS(Test2)
+    CONSTRUCTORS(Test)
 };
-class Test3 SERIALIZETHIS(Test3) {
-  SCALAR(age, int, "age of test");
-//  SCALAR(name, std::string, "name of test");
-  SCALAR(test1, Test2, "name of test");
-//  SCALAR(test2, Test, "name of test");
-//  SCALAR(test3, Test, "name of test");
-//  SCALAR(test4, Test, "name of test");
-//  SCALAR(test5, Test, "name of test");
-//  SCALAR(test6, Test, "name of test");
-  SCALAR(name3, std::string, "name of test");
-  public:
-  
-  CONSTRUCTORS(Test3)
-};
-int main() {
-  int version = property::property_version();
-  int major = version >> 16;
-  int minor = version & 0xFF;
-  
-  std::cout << "version: " << version << "\n";
-  std::cout << "major: " <<  major << "\n";
-  std::cout << "minor: " <<  minor << "\n";
+//
+//class Test2 SERIALIZETHIS(Test2)
+//{
+//    SCALAR(age, int, "age of test");
+////  SCALAR(name, std::string, "name of test");
+//    SCALAR(test1, Test, "name of test");
+////  SCALAR(test2, Test, "name of test");
+////  SCALAR(test3, Test, "name of test");
+////  SCALAR(test4, Test, "name of test");
+////  SCALAR(test5, Test, "name of test");
+////  SCALAR(test6, Test, "name of test");
+////  SCALAR(name3, std::string, "name of test");
+//public:
+//
+//    CONSTRUCTORS(Test2)
+//}
+//
+//class Test3 SERIALIZETHIS(Test3)
+//{
+//    SCALAR(age, int, "age of test");
+////  SCALAR(name, std::string, "name of test");
+//    SCALAR(test1, Test2, "name of test");
+////  SCALAR(test2, Test, "name of test");
+////  SCALAR(test3, Test, "name of test");
+////  SCALAR(test4, Test, "name of test");
+////  SCALAR(test5, Test, "name of test");
+////  SCALAR(test6, Test, "name of test");
+//    SCALAR(name3, std::string, "name of test");
+//public:
+//
+//    CONSTRUCTORS(Test3)
+//}
 
-  Test3 test("test", "simple test serialization");
-  test.age.set(42);
-//  test.name.set("vadya");
-  test.serialize([](const std::string &serdata){
-    // save it to file
-    std::cout << "output:\n" << serdata << "\n";
-  });
-  
+//#include <yaml-cpp/yaml.h>
+//#include <string>
+//#include <memory>
+//#include <utility>
+
+//#define SERIALIZE() private: prop root;
+//
+//struct prop {
+//    using Root = prop*;
+//public:
+//    std::string_view name;
+//    std::string_view type_name;
+//    std::string_view type_doc;
+//
+//    prop() = default;
+//    prop(const std::string_view name,const std::string_view type_name, const std::string_view type_doc, Root root ) :
+//    name{name},
+//    type_name{type_name},
+//    type_doc{type_doc},
+//    root{root}
+//    {
+//
+//    }
+//private:
+//    YAML::Node node;
+//    Root root;
+//};
+//template<typename T>
+//constexpr std::string_view deduce_prop_type_name(T &&type) {
+//    return "";
+//}
+//
+//#define SCALAR(prop_name, prop_type, prop_doc) public: prop prop_name{#prop_name, deduce_prop_type_name(prop_type{}), prop_doc, &root};
+//
+//class Test final {
+//    SERIALIZE();
+//    SCALAR(age, int, "The age of Test class");
+//
+//public:
+//};
+//
+//template<typename Serialize, typename ResultFunction, typename = std::enable_if_t<false, Serialize>>
+//void serialize(Serialize object, ResultFunction result) {
+//
+//}
+
+int main()
+{
+    int version = property::property_version();
+    int major = version >> 16;
+    int minor = version & 0xFF;
+
+    std::cout << "version: " << version << "\n";
+    std::cout << "major: " <<  major << "\n";
+    std::cout << "minor: " <<  minor << "\n";
+    Test test;
+//    YAML::Node root;
+//    root.SetStyle(YAML::EmitterStyle::value::Block);
+//    YAML::Emitter out;
+//    {
+//        YAML::Node node;
+//        node["test_name"] = "just simple node";
+//        node["test_name"].SetTag("string");
+//        root.push_back(node);
+//    }
+//    out << root;
+////    std::cout << "output:\n" << out.c_str() << "\n\n\n";
+//
+//    YAML::Node nodes = YAML::Load(out.c_str());
+//    std::cout << nodes.size();
+//    for (const YAML::Node &node : nodes) {
+//        switch (node.Type()) {
+//            case YAML::NodeType::value::Null: // ...
+//                std::cout << "Null: ";
+//                break;
+//            case YAML::NodeType::value::Scalar: // ...
+//                std::cout << "Scalar: ";
+//                break;
+//            case YAML::NodeType::value::Sequence: // ...
+//                std::cout << "Sequence: ";
+//                break;
+//            case YAML::NodeType::value::Map: // ...
+//                std::cout << "Map: " << node;
+//                break;
+//            case YAML::NodeType::value::Undefined: // ...
+//                std::cout << "Undefined: ";
+//                break;
+//        }
+//    }
+
+//  Test3 test("test", "simple test serialization");
+//  test.age.set(42);
+////  test.name.set("vadya");
+//  test.serialize([](const std::string &serdata){
+//    // save it to file
+//    std::cout << "output:\n" << serdata << "\n";
+//  });
+
 //  std::string serddata_from_file;
 //  test.deserialize(serddata_from_file);
-  // test ready to use;
+// test ready to use;
 }
 
 //#include <vector>
@@ -69,13 +155,12 @@ int main() {
 //#include <functional>
 //#include <type_traits>
 
-
 //
 //template<typename O>
 //struct holder<ObjectType::sequence, std::vector<O>> {
 //  using type = Serializable<std::vector<O>>;
 //  type holder_object;
-//  holder(const char* name_, const char* desc_, const char* type_name_, std::vector<SerializeNode*>& childs) : holder_object{name_, desc_, "sequence"} { 
+//  holder(const char* name_, const char* desc_, const char* type_name_, std::vector<SerializeNode*>& childs) : holder_object{name_, desc_, "sequence"} {
 //      childs.push_back(&holder_object);
 //      holder_object.value = {};
 //      holder_object.serialize = [&] () {
@@ -88,7 +173,7 @@ int main() {
 //struct holder<ObjectType::map, Serializable<std::map<K, O>>> {
 //  using type = Serializable<std::map<K,O>>;
 //  type holder_object;
-//  holder(const char* name_, const char* desc_, std::vector<SerializeNode*> &childs) : holder_object{name_, desc_, "map"} { 
+//  holder(const char* name_, const char* desc_, std::vector<SerializeNode*> &childs) : holder_object{name_, desc_, "map"} {
 //    //childs.push_back(&holder_object.node);
 //    }
 //};
@@ -105,22 +190,22 @@ int main() {
 //
 //#define serializable_s(param_name, param_type, param_name_text, param_desc) \
 //  private: \
-//    Scalar<param_type>  param_name{ # param_name, param_desc, #param_type, this->childs}; 
+//    Scalar<param_type>  param_name{ # param_name, param_desc, #param_type, this->childs};
 //
 //#define serializable_v(param_name, param_type, param_name_text, param_desc) \
 //  private: \
-//    Sequence<param_type>  param_name{ # param_name, param_desc, #param_type, this->childs}; 
+//    Sequence<param_type>  param_name{ # param_name, param_desc, #param_type, this->childs};
 //
 //#define serializable_m(param_name, param_type1, param_type2, param_name_text, param_desc) \
 //  private: \
-//    Map<param_type1, param_type2>  param_name{ # param_name, param_desc, this->childs}; 
+//    Map<param_type1, param_type2>  param_name{ # param_name, param_desc, this->childs};
 //
 //#define SCALAR(param_name, param_type, param_desc) serializable_s(param_name, param_type, param_name, param_desc)
 //#define SEQUENCE(param_name, param_type, param_desc) serializable_v(param_name, param_type, param_name, param_desc)
 //#define MAP(param_name, param_type1, param_type2, param_desc) serializable_m(param_name, param_type1, param_type2, param_name, param_desc)
 //
 //#define SERIALIZETHIS(type_name) \
-//  final : public Serialize<type_name> 
+//  final : public Serialize<type_name>
 //#define CONSTRUCTORS(class_name) \
 //  public: \
 //  class_name(const std::string_view &name_, const std::string_view &desc_) : holder{name_.data(), desc_.data(), #class_name} {} \

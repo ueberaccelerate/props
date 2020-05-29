@@ -25,6 +25,7 @@ namespace property {
         std::shared_ptr<SerializeNode> null_holder_object;
         bool is_null_holder_added{false};
         public:
+        holder() = default;
         holder(const char *name, const char *desc, const char *type_name) : holder_object { name, desc, type_name, ObjectType::serialize }, childs {} {
             DEBUG("created holder object: %s\n", name);
             push_null_holder();

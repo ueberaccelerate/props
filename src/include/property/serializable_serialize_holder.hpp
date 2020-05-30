@@ -25,18 +25,15 @@ namespace property {
         holder() : holder{"default_name", "default_desc", "default_type", nullptr} {}
         holder(const char *name, const char *desc, const char *type_name, SerializeNode *parent) : holder_object { name, desc, type_name, ObjectType::serialize, parent } {
             DEBUG("created holder object: %s\n", name);
-            
-//            holder_object.serialize = [&] () {
-                holder_object.node[name] = "version: 1.0";
-                holder_object.node[name].SetTag(name);
-                
-                if(parent) {
-                    holder_object.node[holder_object.name + "_doc"] = type_name;
-                    holder_object.node.remove(name);
-                    parent->node[name] = holder_object.node;
-                }
+            if (!parent) {
+              holder_object.node[name] = "version: 1.0";
+              holder_object.node[name].SetTag(name);
+            }
 
-//            };
+            if (parent) {
+              parent->node[name] = holder_object.node;
+              parent->node[name].SetTag(type_name);
+            }
         }
         public:
         void serialize(PROPERTY_UNUSED ResultFunction completed)

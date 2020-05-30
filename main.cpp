@@ -44,7 +44,27 @@ public:
 //    CONSTRUCTORS(Test3)
 //}
 
-#include <yaml-cpp/yaml.h>
+
+int main()
+{
+    int version = property::property_version();
+    int major = property::property_major();
+    int minor = property::property_minor();
+//
+    std::cout << "version: " << version << "\n";
+    std::cout << "major: " <<  major << "\n";
+    std::cout << "minor: " <<  minor << "\n";
+    Test2 test;
+    test.age.set(42);
+    test.serialize([&](const std::string &sd) {
+        std::cout << "\n" << sd << "\n";
+    });
+    test.age.set(43);
+    test.serialize([&](const std::string &sd) {
+      std::cout << "\n" << sd << "\n";
+    });
+}
+//#include <yaml-cpp/yaml.h>
 //#include <string>
 //#include <memory>
 //#include <utility>
@@ -206,80 +226,6 @@ public:
 //{
 //}
 //};
-int main()
-{
-//    Test3 t;
-//    t.age = 42;
-//    std::string serdata;
-//    t.serialize([&](const std::string &sd) {
-//        std::cout << sd << "\n";
-////        std::cout << nodes->first << "\n";
-//        serdata = sd;
-//    });
-
-//    t.deserialize(serdata);
-    int version = property::property_version();
-    int major = property::property_major();
-    int minor = property::property_minor();
-//
-    std::cout << "version: " << version << "\n";
-    std::cout << "major: " <<  major << "\n";
-    std::cout << "minor: " <<  minor << "\n";
-    Test2 test;
-    test.serialize([&](const std::string &sd) {
-        std::cout << "\n" << sd << "\n";
-    });
-//    YAML::Node root;
-////    root.SetStyle(YAML::EmitterStyle::value::Block);
-//    YAML::Emitter out;
-//    {
-//        YAML::Node node;
-//        node["test_name"] = "just simple node";
-//        node["test_name"].SetTag("string");
-//        root.push_back(node);
-////        out << root;
-//        std::cout << "output:\n" << out.c_str() << "\n\n\n";
-//        node["test_name"] = "just simple node2";
-//        out << root;
-//    }
-//    std::cout << "output:\n" << out.c_str() << "\n\n\n";
-
-//    YAML::Node nodes = YAML::Load(out.c_str());
-//    std::cout << nodes.size();
-//
-//    for (const YAML::Node &node : nodes) {
-//        switch (node.Type()) {
-//            case YAML::NodeType::value::Null: // ...
-//                std::cout << "Null: ";
-//                break;
-//            case YAML::NodeType::value::Scalar: // ...
-//                std::cout << "Scalar: ";
-//                break;
-//            case YAML::NodeType::value::Sequence: // ...
-//                std::cout << "Sequence: ";
-//                break;
-//            case YAML::NodeType::value::Map: // ...
-//                std::cout << "Map: " << node;
-//                break;
-//            case YAML::NodeType::value::Undefined: // ...
-//                std::cout << "Undefined: ";
-//                break;
-//        }
-//    }
-
-//  Test3 test("test", "simple test serialization");
-//  test.age.set(42);
-////  test.name.set("vadya");
-//  test.serialize([](const std::string &serdata){
-//    // save it to file
-//    std::cout << "output:\n" << serdata << "\n";
-//  });
-
-//  std::string serddata_from_file;
-//  test.deserialize(serddata_from_file);
-// test ready to use;
-}
-
 //#include <vector>
 //#include <map>
 //#include <iostream>

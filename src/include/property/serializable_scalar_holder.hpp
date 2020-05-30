@@ -28,8 +28,6 @@ private:
             holder_object.parent->node[holder_object.name] = holder_object.value;
             holder_object.parent->node[holder_object.name].SetTag(holder_object.type_name);
         }
-//        (*parent)[this->name] = value;
-//        (*parent)[this->name].SetTag(type_name.data());
 //    };
   }
 public:
@@ -47,6 +45,8 @@ public:
   void set(const O &value) {
     DEBUG( "set new value \n" );
     holder_object.value = value;
+    holder_object.parent->node[holder_object.name] = holder_object.value;
+    holder_object.parent->node[holder_object.name].SetTag(holder_object.type_name);
   }
   
   O& get() const {
@@ -72,13 +72,45 @@ template<typename O>
 using Scalar = std::conditional_t< is_base_of_holder<O>, O, holder<ObjectType::scalar, O>>;
 
 
+
+template<typename T>
+struct StringType : public std::false_type {
+
+};
+
+// SIMPLE LOOKUP: are we have c_str method then we have string type
+template<>
+struct StringType<std::string> : public std::true_type {
+
+};
+
+template<>
+struct StringType<const char *> : public std::true_type {
+
+};
+
+template<>
+struct StringType<std::string_view> : public std::true_type {
+
+};
+
+template<typename T>
+constexpr bool is_string_type_v = StringType<T>::value;
+
+
 template < typename T >
 constexpr std::string_view deduce_prop_type_name(T && type, std::string_view stoke_type_name)
 {
-    if (is_base_of_holder<T>) {
+    if constexpr (is_base_of_holder<T>) {
         return stoke_type_name;
     }
-    return "int";
+    if constexpr (std::is_fundamental_v<T>) {
+      return stoke_type_name;
+    }
+    if constexpr (is_string_type_v<T>) {
+      return "string";
+    }
+    static_assert("unknown type");
 }
 
 }

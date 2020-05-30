@@ -1,7 +1,7 @@
 #include <property/property.hpp>
-
+//
 #include <iostream>
-
+//
 class Test SERIALIZETHIS(Test)
 {
     SCALAR(age, int, "age of test");
@@ -9,23 +9,24 @@ class Test SERIALIZETHIS(Test)
     public:
 
     CONSTRUCTORS(Test)
+    
 };
 //
-//class Test2 SERIALIZETHIS(Test2)
-//{
-//    SCALAR(age, int, "age of test");
-////  SCALAR(name, std::string, "name of test");
-//    SCALAR(test1, Test, "name of test");
-////  SCALAR(test2, Test, "name of test");
-////  SCALAR(test3, Test, "name of test");
-////  SCALAR(test4, Test, "name of test");
-////  SCALAR(test5, Test, "name of test");
-////  SCALAR(test6, Test, "name of test");
-////  SCALAR(name3, std::string, "name of test");
-//public:
-//
-//    CONSTRUCTORS(Test2)
-//}
+class Test2 SERIALIZETHIS(Test2)
+{
+    SCALAR(age, int, "age of test");
+//  SCALAR(name, std::string, "name of test");
+    SCALAR(test1, Test, "name of test");
+//  SCALAR(test2, Test, "name of test");
+//  SCALAR(test3, Test, "name of test");
+//  SCALAR(test4, Test, "name of test");
+//  SCALAR(test5, Test, "name of test");
+//  SCALAR(test6, Test, "name of test");
+//  SCALAR(name3, std::string, "name of test");
+public:
+
+    CONSTRUCTORS(Test2)
+};
 //
 //class Test3 SERIALIZETHIS(Test3)
 //{
@@ -43,7 +44,7 @@ class Test SERIALIZETHIS(Test)
 //    CONSTRUCTORS(Test3)
 //}
 
-//#include <yaml-cpp/yaml.h>
+#include <yaml-cpp/yaml.h>
 //#include <string>
 //#include <memory>
 //#include <utility>
@@ -89,30 +90,163 @@ class Test SERIALIZETHIS(Test)
 //
 //}
 
+//struct prop {
+//    std::string name;
+//    std::string type_name;
+//    int value;
+//protected:
+//    YAML::Node node;
+//    YAML::Node *parent;
+//    bool is_serialize;
+//public:
+//    prop() = default;
+//    prop(std::string_view name, std::string_view type_name, YAML::Node *parent, bool is_serialize = false) : name{name}, type_name{type_name}, parent{parent}, is_serialize{is_serialize}
+//    {
+//        if (is_serialize) {
+//            node[this->name] = "version: 1.0";
+//            node[this->name].SetTag(type_name.data());
+//        }
+//        if (parent) {
+//            if (is_serialize) {
+//                (*parent)[this->name] = "version: 1.0";
+//                (*parent)[this->name].SetTag(type_name.data());
+//                node[this->name + "_doc"] = type_name.data();
+//                node.remove(this->name);
+//                (*parent)[this->name] = node;
+//            } else {
+//                (*parent)[this->name] = value;
+//                (*parent)[this->name].SetTag(type_name.data());
+//            }
+//        }
+//    }
+//
+//    void serialize(std::function<void (const std::string &serdata)> completed)
+//    {
+//        YAML::Emitter out;
+//        if (parent) {
+//            out << YAML::BeginMap;
+//            out << *parent;
+//            out << YAML::EndMap;
+//        } else {
+//            out << YAML::BeginMap;
+////            YAML::Node first;
+////            YAML::Node second;
+////
+////            YAML::Node root;
+////
+////            root["age"] = 42;
+////            root["name"] = "kek";
+////            {
+////                YAML::Node child;
+////                child.SetStyle(YAML::EmitterStyle::value::Block);
+////                child["age"] = 42;
+////                child["name"] = "kek";
+////                root["child_class"] = child;
+////            }
+//            for (YAML::const_iterator citerator = node.begin(); citerator != node.end(); ++citerator) {
+//                out << YAML::Key << citerator->first << YAML::Value << citerator->second;
+//            }
+//
+//            out << YAML::EndMap;
+////            out << node;
+//        }
+//        completed(out.c_str());
+//    }
+//
+//    void deserialize(const std::string &serdata)
+//    {
+//        YAML::Node nodes = YAML::Load(serdata.c_str());
+//
+//        for (YAML::const_iterator it = nodes.begin(); it != nodes.end(); ++it) {
+//            std::cout << it->first << it->second.Tag() <<  "\n";
+//        }
+//    }
+//
+//    int &operator=(const int v)
+//    {
+//        node[name.data()] = value = v;
+//        node[name.data()].SetTag(type_name.data());
+//        return value;
+//    }
+//};
+//
+//class Test : public prop {
+//public:
+//prop age{ "age", "int", &node };
+//prop age2{ "age2", "int", &node };
+//Test() : prop{"test1", "Test", nullptr, true}
+//{
+//}
+//
+//Test(std::string_view name, std::string_view type_name, YAML::Node *root) : prop{name, type_name, root, true}
+//{
+//}
+//};
+//
+//class Test2 : public prop {
+//public:
+//prop age{ "age", "int", &node };
+//Test test{ "test", "Test", &node };
+//
+//Test2() : prop{"t", "Test2", nullptr, true}
+//{
+//}
+//
+//Test2(std::string_view name, std::string_view type_name, YAML::Node *root) : prop{name, type_name, root, true}
+//{
+//}
+//};
+//
+//class Test3 : public prop {
+//public:
+//prop age{ "age", "int", &node };
+//Test2 test{ "test", "Test2", &node };
+//
+//Test3() : prop{"t", "Test3", nullptr, true}
+//{
+//}
+//};
 int main()
 {
-    int version = property::property_version();
-    int major = version >> 16;
-    int minor = version & 0xFF;
+//    Test3 t;
+//    t.age = 42;
+//    std::string serdata;
+//    t.serialize([&](const std::string &sd) {
+//        std::cout << sd << "\n";
+////        std::cout << nodes->first << "\n";
+//        serdata = sd;
+//    });
 
+//    t.deserialize(serdata);
+    int version = property::property_version();
+    int major = property::property_major();
+    int minor = property::property_minor();
+//
     std::cout << "version: " << version << "\n";
     std::cout << "major: " <<  major << "\n";
     std::cout << "minor: " <<  minor << "\n";
-    Test test;
+    Test2 test;
+    test.serialize([&](const std::string &sd) {
+        std::cout << "\n" << sd << "\n";
+    });
 //    YAML::Node root;
-//    root.SetStyle(YAML::EmitterStyle::value::Block);
+////    root.SetStyle(YAML::EmitterStyle::value::Block);
 //    YAML::Emitter out;
 //    {
 //        YAML::Node node;
 //        node["test_name"] = "just simple node";
 //        node["test_name"].SetTag("string");
 //        root.push_back(node);
+////        out << root;
+//        std::cout << "output:\n" << out.c_str() << "\n\n\n";
+//        node["test_name"] = "just simple node2";
+//        out << root;
 //    }
-//    out << root;
-////    std::cout << "output:\n" << out.c_str() << "\n\n\n";
-//
+//    std::cout << "output:\n" << out.c_str() << "\n\n\n";
+
 //    YAML::Node nodes = YAML::Load(out.c_str());
 //    std::cout << nodes.size();
+//
 //    for (const YAML::Node &node : nodes) {
 //        switch (node.Type()) {
 //            case YAML::NodeType::value::Null: // ...

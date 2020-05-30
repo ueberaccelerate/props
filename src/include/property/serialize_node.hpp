@@ -18,11 +18,9 @@
 //#include <type_traits>
 
 namespace property {
-template < typename T >
-constexpr std::string_view deduce_prop_type_name(T && type)
-{
-    return "int";
-}
+
+
+
 
 /*
 *
@@ -39,31 +37,26 @@ constexpr std::string_view deduce_prop_type_name(T && type)
         map
     };
 
-    struct SerializeInfo {
-        std::string_view name;
-        std::string_view type_name;
-        std::string_view desc;
+    struct SerializeNode {
+        
+        std::string name;
+        std::string type_name;
+        std::string desc;
         ObjectType object_type;
-        std::string data;
-    };
+        
+        YAML::Node node;
+        SerializeNode *parent;
+        
+        using VoidFunction = std::function < void() >;
 
-    struct SerializeNode: SerializeInfo {
-        using SerializeQueue = std::queue<SerializeInfo>;
-        using VoidFunction = std::function < void( SerializeQueue &) >;
-        struct Impl;
-        std::unique_ptr<Impl> impl;
-      
-
-      
         VoidFunction serialize;
         VoidFunction deserialize;
         
         SerializeNode();
-        SerializeNode(const char *name, const char *desc, const char *type_name, const ObjectType object_type);
+        SerializeNode(const char *name, const char *desc, const char *type_name, const ObjectType object_type, SerializeNode *parent);
         ~SerializeNode();
         
       
-        std::string commit(const SerializeQueue &out);
     };
 }
 

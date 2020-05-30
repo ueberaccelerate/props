@@ -18,43 +18,37 @@ namespace property {
     struct holder < ObjectType::serialize, Serializable < O >> {
         using ResultFunction = std::function < void (const std::string &serialize_data) >;
         using value_type = Serializable < O * >;
-
-        value_type holder_object;
-        std::vector < SerializeNode * > childs;
-        private:
-        std::shared_ptr<SerializeNode> null_holder_object;
-        bool is_null_holder_added{false};
-        public:
-        holder() = default;
-        holder(const char *name, const char *desc, const char *type_name) : holder_object { name, desc, type_name, ObjectType::serialize }, childs {} {
-            DEBUG("created holder object: %s\n", name);
-            push_null_holder();
-            holder_object.serialize = [&] (SerializeNode::SerializeQueue& out) {
-                out.push(holder_object);
-                if( !is_null_holder_added ) {
-                    childs.push_back(null_holder_object.get()); is_null_holder_added = !is_null_holder_added;
-                }
-                
-                for (auto child : childs) {
-                    child->serialize(out);
-                }
-                DEBUG("created holder object: %d\n", childs.size());
-            };
-        }
         protected:
-        void push_null_holder() {
-            // const char *name, const char *desc, const char *type_name, const ObjectType object_type
-            null_holder_object = std::make_shared<SerializeNode> ("end_of_", holder_object.name.data(), holder_object.type_name.data(), ObjectType::serialize );
-            null_holder_object->serialize = [&] (SerializeNode::SerializeQueue& out) {
-                out.push(*null_holder_object);
-            };
+        value_type holder_object;
+        
+        public:
+        holder() : holder{"default_name", "default_desc", "default_type", nullptr} {}
+        holder(const char *name, const char *desc, const char *type_name, SerializeNode *parent) : holder_object { name, desc, type_name, ObjectType::serialize, parent } {
+            DEBUG("created holder object: %s\n", name);
+            
+//            holder_object.serialize = [&] () {
+                holder_object.node[name] = "version: 1.0";
+                holder_object.node[name].SetTag(name);
+                
+                if(parent) {
+                    holder_object.node[holder_object.name + "_doc"] = type_name;
+                    holder_object.node.remove(name);
+                    parent->node[name] = holder_object.node;
+                }
+
+//            };
         }
         public:
         void serialize(PROPERTY_UNUSED ResultFunction completed)
         {
-            SerializeNode::SerializeQueue out;
-            holder_object.serialize(out);
-            completed(holder_object.commit(out));
+            YAML::Emitter out;
+            out << YAML::BeginMap;
+            for(YAML::const_iterator citrator = holder_object.node.begin(); citrator != holder_object.node.end(); ++citrator) {
+                out << YAML::Key << citrator->first << YAML::Value << citrator->second;
+            }
+            out << YAML::EndMap;
+//            holder_object.serialize(out);
+            completed(out.c_str());
         }
 
         void deserialize(PROPERTY_UNUSED const std::string &serdata)

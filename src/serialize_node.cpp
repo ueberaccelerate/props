@@ -5,54 +5,14 @@
 #include <ueberlog/ueberlog.hpp>
 #include <strstream>
 namespace property {
-struct SerializeNode::Impl {
-    YAML::Node yaml_node;
-    SerializeNode *node;
-    Impl(SerializeNode *node) : node{node}
-    {
-    }
-};
 
-// it need to unique_ptr forward declaration
+
+SerializeNode::SerializeNode() = default;
 SerializeNode::~SerializeNode() = default;
 
-SerializeNode::SerializeNode() : impl{std::make_unique<SerializeNode::Impl>(this)} {
-    
-}
-SerializeNode::SerializeNode(const char *name, const char *desc, const char *type_name, const ObjectType object_type) :  SerializeInfo{name, type_name, desc, object_type, ""}, impl{std::make_unique<SerializeNode::Impl>(this)}
+SerializeNode::SerializeNode(const char *name, const char *desc, const char *type_name, const ObjectType object_type, SerializeNode *parent) : name{name}, type_name{type_name}, desc{desc}, object_type{object_type}, parent{parent}
 {
     DEBUG("created node: %s %s %s \n", name, desc, type_name);
-}
-
-std::string SerializeNode::commit(const SerializeQueue &out)
-{
-    SerializeQueue buffer = out;
-    YAML::Emitter emitter;
-    YAML::Node root;
-    while (!buffer.empty()) {
-        auto &element = buffer.front();
-        buffer.pop();
-        if (element.object_type == ObjectType::serialize) {
-            std::stringstream stream;
-            stream << element.type_name << ":" << element.desc;
-            if(root.IsNull()) {
-                root[element.name.data()] = stream.str();
-            } else {
-                YAML::Node node;
-                node[element.name.data()] = stream.str();
-                root["childs"].push_back(node);
-            }
-        }
-        if (element.object_type == ObjectType::scalar) {
-            YAML::Node node;
-            std::stringstream stream;
-            stream << element.data << ":" << element.type_name << ":" << element.desc;
-            node[element.name.data()] = stream.str();
-            root["childs"].push_back(node);
-        }
-    }
-    emitter << root;
-    return emitter.c_str();
 }
 
 //void SerializeNode::serialization(VoidFunction serializator)

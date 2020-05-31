@@ -1,7 +1,9 @@
 #include <property/property.hpp>
 //
 #include <iostream>
-//
+#include <string>
+
+
 class Test SERIALIZETHIS(Test)
 {
     SCALAR(age, int, "age of test");
@@ -15,6 +17,7 @@ class Test SERIALIZETHIS(Test)
 class Test2 SERIALIZETHIS(Test2)
 {
     SCALAR(age, int, "age of test");
+    SCALAR(is_booled, bool, "booled of test");
 //  SCALAR(name, std::string, "name of test");
     SCALAR(test1, Test, "name of test");
 //  SCALAR(test2, Test, "name of test");
@@ -56,13 +59,25 @@ int main()
     std::cout << "minor: " <<  minor << "\n";
     Test2 test;
     test.age.set(42);
-    test.serialize([&](const std::string &sd) {
-        std::cout << "\n" << sd << "\n";
+    test.is_booled.set(true);
+    std::string serdata;
+    test.serialize([&serdata](const std::string &sd) {
+        serdata = sd;
     });
-    test.age.set(43);
-    test.serialize([&](const std::string &sd) {
+
+    Test2 ser_data;
+    try {
+      ser_data.deserialize(serdata);
+    }
+    catch (property::serialize_error &e) {
+      std::cout << e.what();
+      return -1;
+    }
+
+    ser_data.serialize([](const std::string &sd) {
       std::cout << "\n" << sd << "\n";
     });
+
 }
 //#include <yaml-cpp/yaml.h>
 //#include <string>

@@ -8,12 +8,9 @@
 #define PROPERTY_SERIALIZABLE_SCALAR_HOLDER_HPP
 
 #include "property_config.hpp"
-
 #include "serializable_holder.hpp"
 
 #include <ueberlog/ueberlog.hpp>
-
-#include <sstream>
 
 namespace property {
 
@@ -67,47 +64,6 @@ public:
 template<typename O>
 using Scalar = std::conditional_t< is_base_of_holder<O>, O, holder<ObjectType::scalar, O>>;
 
-
-
-template<typename T>
-struct StringType : public std::false_type {
-
-};
-
-// SIMPLE LOOKUP: are we have c_str method then we have string type
-template<>
-struct StringType<std::string> : public std::true_type {
-
-};
-
-template<>
-struct StringType<const char *> : public std::true_type {
-
-};
-
-template<>
-struct StringType<std::string_view> : public std::true_type {
-
-};
-
-template<typename T>
-constexpr bool is_string_type_v = StringType<T>::value;
-
-
-template < typename T >
-constexpr std::string_view deduce_prop_type_name(T && type, std::string_view stoke_type_name)
-{
-    if constexpr (is_base_of_holder<T>) {
-        return stoke_type_name;
-    }
-    if constexpr (std::is_fundamental_v<T>) {
-      return stoke_type_name;
-    }
-    if constexpr (is_string_type_v<T>) {
-      return "string";
-    }
-    static_assert("unknown type");
-}
 
 }
 

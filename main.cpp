@@ -8,6 +8,7 @@ class Test SERIALIZETHIS(Test)
 {
     SCALAR(age, int, "age of test");
     SCALAR(name, std::string, "name of test");
+    SEQUENCE(childs, std::string, "names vector");
     public:
 
     CONSTRUCTORS(Test)
@@ -20,6 +21,7 @@ class Test2 SERIALIZETHIS(Test2)
     SCALAR(is_booled, bool, "booled of test");
 //  SCALAR(name, std::string, "name of test");
     SCALAR(test1, Test, "name of test");
+    SEQUENCE(test_childs, Test, "names vector");
 //  SCALAR(test2, Test, "name of test");
 //  SCALAR(test3, Test, "name of test");
 //  SCALAR(test4, Test, "name of test");
@@ -60,6 +62,7 @@ int main()
     Test2 test;
     test.age.set(42);
     test.is_booled.set(true);
+    test.test1.childs.push_back("new");
     std::string serdata;
     test.serialize([&serdata](const std::string &sd) {
         serdata = sd;
@@ -73,7 +76,10 @@ int main()
       std::cout << e.what();
       return -1;
     }
+
     ser_data.age.set(92);
+    ser_data.test1.childs.push_back("new 2");
+
     ser_data.serialize([](const std::string &sd) {
       std::cout << "\n" << sd << "\n";
     });

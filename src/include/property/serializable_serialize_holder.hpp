@@ -41,7 +41,7 @@ namespace property {
   struct holder < ObjectType::serialize, Serializable < O >> {
       using ResultFunction = std::function < void (const std::string &serialize_data) >;
       using value_type = Serializable < O * >;
-      protected:
+      public:
       value_type holder_object;
         
       public:

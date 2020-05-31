@@ -16,7 +16,7 @@
 //#include <cmath>
 //#include <functional>
 //#include <type_traits>
-
+#include <unordered_map>
 namespace property {
 
 
@@ -46,8 +46,10 @@ namespace property {
         
         YAML::Node node;
         SerializeNode *parent;
+
+        std::vector<SerializeNode *> childs;
         
-        using VoidFunction = std::function < void() >;
+        using VoidFunction = std::function < void(YAML::Node) >;
 
         VoidFunction serialize;
         VoidFunction deserialize;

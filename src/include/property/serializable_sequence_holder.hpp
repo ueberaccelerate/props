@@ -18,26 +18,33 @@ namespace property {
     type holder_object;
     void setup_sequence_holder() {
       if (holder_object.parent) {
+
+        holder_object.parent->childs.push_back(&holder_object);
+
+
         if constexpr (is_base_of_holder<O>) {
           //for (auto serialize_holder : holder_object.value) {
           //  serialize_holder.holder_object.node;
           //}
           holder_object.parent->node[holder_object.name] = YAML::Load("[]");;
           holder_object.parent->node[holder_object.name].SetTag(holder_object.type_name);
+          holder_object.deserialize = [&](YAML::Node newroot) {
+            //holder_object.value = holder_object.parent->node[holder_object.name].as<std::vector<O>>();
+          };
         }
         else {
           holder_object.parent->node[holder_object.name] = holder_object.value;
           holder_object.parent->node[holder_object.name].SetTag(holder_object.type_name);
+          holder_object.deserialize = [&](YAML::Node newroot) {
+            holder_object.value = holder_object.parent->node[holder_object.name].as<std::vector<O>>();
+          };
         }
       }
     }
     void updateIfNeeded() {
-      auto &node   = holder_object.parent->node[holder_object.name];
-      auto &values = holder_object.value;
-      for (auto n : node) {
-
-        std::cout << n;
-      }
+      //auto node   = holder_object.parent->node[holder_object.name];
+      //auto &values = holder_object.value;
+      //std::cout << node.size() << " " <<  holder_object.node.size();
     }
   public:
 

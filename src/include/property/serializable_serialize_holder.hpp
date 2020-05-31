@@ -48,15 +48,32 @@ namespace property {
       holder() : holder{"default_name", "default_desc", "default_type", nullptr} {}
       holder(const char *name, const char *desc, const char *type_name, SerializeNode *parent) : holder_object { name, desc, type_name, ObjectType::serialize, parent } {
           DEBUG("created holder object: %s\n", name);
-          if (!parent) {
+          if (parent) {
+            holder_object.parent->childs.push_back(&holder_object);
+
+            parent->node[name] = holder_object.node;
+            parent->node[name].SetTag(type_name);
+          }
+          else {
             holder_object.node[name] = "version: 1.0";
             holder_object.node[name].SetTag(name);
           }
 
-          if (parent) {
-            parent->node[name] = holder_object.node;
-            parent->node[name].SetTag(type_name);
-          }
+          
+
+          holder_object.deserialize = [&](YAML::Node newroot){
+            // serialize object is not main in the scope 
+            // so we search it in map by key
+            if (holder_object.parent) {
+              holder_object.node = newroot[holder_object.name];
+            }
+            else {
+              holder_object.node = newroot;
+            }
+            for (auto child : holder_object.childs) {
+              child->deserialize(holder_object.node);
+            }
+          };
       }
       public:
 
@@ -73,20 +90,22 @@ namespace property {
 
       void deserialize(PROPERTY_UNUSED const std::string &serdata)
       {
+        DEBUG("Validation serdata...\n");
         YAML::Node root = YAML::Load(serdata);
         YAML::Node &holder_node = holder_object.node;
+
 
         if(!root.size()) throw empty_serialize_error();
         if(root.size() != holder_node.size()) throw size_serialize_error();
 
         for (YAML::iterator ri = root.begin(), hi = holder_node.begin(); ri != root.end(); ++ri, ++hi) {
-
-          if (hi->first.as<std::string>() == ri->first.as<std::string>()) hi->second = ri->second;
-          else {
-            std::cout <<  hi->first << " " << ri->first << "\n";
+          if (hi->first.as<std::string>() != ri->first.as<std::string>()) {
             throw parser_serialize_error("hi->first != ri->first");
           }
         }
+        DEBUG("Validation serdata...OK\n");
+
+        holder_object.deserialize(root);
 
       }
   };

@@ -23,9 +23,25 @@ private:
   void setup_scalar_holder() {
 //    holder_object.serialize = [&] () {
         if(holder_object.parent) {
+            holder_object.parent->childs.push_back(&holder_object);
+
             holder_object.parent->node[holder_object.name] = holder_object.value;
             holder_object.parent->node[holder_object.name].SetTag(holder_object.type_name);
+
+
+            if constexpr (is_base_of_holder<O>) {
+              holder_object.deserialize = [&](YAML::Node newroot) {
+                // special case
+              };
+            }
+            else {
+              holder_object.deserialize = [&](YAML::Node newroot) {
+                holder_object.value = holder_object.parent->node[holder_object.name].as<O>();
+              };
+
+            }
         }
+
 //    };
   }
 public:

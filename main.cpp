@@ -63,6 +63,7 @@ int main()
     test.age.set(42);
     test.is_booled.set(true);
     test.test1.childs.push_back("new");
+    test.test1.childs.push_back("new2");
     std::string serdata;
     test.serialize([&serdata](const std::string &sd) {
         serdata = sd;
@@ -78,7 +79,12 @@ int main()
     }
 
     ser_data.age.set(92);
-    ser_data.test1.childs.push_back("new 2");
+    ser_data.test1.childs.push_back("new 3");
+    ser_data.test1.childs.push_back("new 4");
+    ser_data.test1.childs.push_back("new 5");
+    ser_data.test1.age.set(1488);
+    //ser_data.test1.childs.push_back("new 2");
+    //ser_data.test1.childs.push_back("new 2");
 
     ser_data.serialize([](const std::string &sd) {
       std::cout << "\n" << sd << "\n";

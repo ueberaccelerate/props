@@ -36,7 +36,8 @@ private:
             }
             else {
               holder_object.deserialize = [&](YAML::Node newroot) {
-                holder_object.value = holder_object.parent->node[holder_object.name].as<O>();
+                YAML::Node newvalue = holder_object.parent->node[holder_object.name];
+                holder_object.value = newvalue.as<O>();
               };
 
             }

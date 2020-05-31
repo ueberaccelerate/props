@@ -20,6 +20,7 @@ namespace property {
 template<typename O>
 struct holder<ObjectType::scalar, O> : base_holder<O> {
   using type = Serializable<O>;
+protected:
   type holder_object;
 private:
   void setup_scalar_holder() {
@@ -53,19 +54,14 @@ public:
     return holder_object.value;
   }
   
-  template <typename Function>
-  void serialize( Function completed) {
-
-    // when serialize is completed
-    // then return yaml node
-//    holder_object.serialize(out);
-//    completed(holder_object.commit(out));
-  }
-  
-  template <typename Function>
-  void deserialize( Function completed) {
-    
-  }
+  //template <typename Function>
+  //void serialize( Function completed) {
+  //}
+  //
+  //template <typename Function>
+  //void deserialize( Function completed) {
+  //  
+  //}
 };
 
 template<typename O>

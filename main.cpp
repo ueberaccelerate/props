@@ -73,7 +73,7 @@ int main()
       std::cout << e.what();
       return -1;
     }
-
+    ser_data.age.set(92);
     ser_data.serialize([](const std::string &sd) {
       std::cout << "\n" << sd << "\n";
     });

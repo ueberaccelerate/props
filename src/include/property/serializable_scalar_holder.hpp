@@ -65,7 +65,8 @@ struct holder<ObjectType::scalar, O> : base_holder<O> {
             holder_object.type_name);
     }
 
-    O& get() const { return holder_object.value; }
+    O get() const { return holder_object.value; }
+    O& get() { return holder_object.value; }
 };
 
 template <typename O>

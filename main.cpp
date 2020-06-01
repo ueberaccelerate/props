@@ -1,5 +1,5 @@
 #include <property/property.hpp>
-//
+
 #include <iostream>
 #include <string>
 
@@ -9,57 +9,57 @@ class Test SERIALIZETHIS(Test)
     SCALAR(age, int, "age of test");
     SEQUENCE(childs, std::string, "names vector");
     public:
-
     CONSTRUCTORS(Test)
     
+    bool operator==(const Test &test) const{
+        if (this->age.get() != test.age.get()) return false;
+        if (this->childs.size() != test.childs.size()) return false;
+        
+        for (size_t i = 0; i < this->childs.size(); ++i) {
+            if(this->childs[i] != test.childs[i]) return false;
+        }
+        return true;
+    }
+    bool operator!=(const Test &test) const  {
+        return !Test::operator==(test);
+    }
 };
-//
+
 class Test2 SERIALIZETHIS(Test2)
 {
     SCALAR(age, int, "age of test");
     SCALAR(test1, Test, "name of test");
     SEQUENCE(test_childs, Test, "names vector");
-//  SCALAR(test2, Test, "name of test");
-//  SCALAR(test3, Test, "name of test");
-//  SCALAR(test4, Test, "name of test");
-//  SCALAR(test5, Test, "name of test");
-//  SCALAR(test6, Test, "name of test");
-//  SCALAR(name3, std::string, "name of test");
 public:
-
     CONSTRUCTORS(Test2)
+    
+    bool operator==(const Test2 &test2) const  {
+        if (this->age.get() != test2.age.get()) return false;
+        if (this->test1 != test2.test1) return false;
+        
+        if (this->test_childs.size() != test2.test_childs.size()) return false;
+        return true;
+    }
+    bool operator!=(const Test2 &test2) const  {
+        return !Test2::operator==(test2);
+    }
 };
 class Test3 SERIALIZETHIS(Test3)
 {
     SCALAR(age, int, "age of test");
-    SCALAR(test1, Test, "name of test");
     SEQUENCE(test_childs, Test2, "names vector");
-//  SCALAR(test2, Test, "name of test");
-//  SCALAR(test3, Test, "name of test");
-//  SCALAR(test4, Test, "name of test");
-//  SCALAR(test5, Test, "name of test");
-//  SCALAR(test6, Test, "name of test");
-//  SCALAR(name3, std::string, "name of test");
 public:
-
     CONSTRUCTORS(Test3)
+    
+    bool operator==(const Test3 &test3) const{
+        if (this->age.get() != test3.age.get()) return false;
+        if (this->test_childs.size() != test3.test_childs.size()) return false;
+        for (size_t i = 0; i < this->test_childs.size(); ++i) {
+            if(this->test_childs[i] != test3.test_childs[i]) return false;
+        }
+        return true;
+    }
 };
-//
-//class Test3 SERIALIZETHIS(Test3)
-//{
-//    SCALAR(age, int, "age of test");
-////  SCALAR(name, std::string, "name of test");
-//    SCALAR(test1, Test2, "name of test");
-////  SCALAR(test2, Test, "name of test");
-////  SCALAR(test3, Test, "name of test");
-////  SCALAR(test4, Test, "name of test");
-////  SCALAR(test5, Test, "name of test");
-////  SCALAR(test6, Test, "name of test");
-//    SCALAR(name3, std::string, "name of test");
-//public:
-//
-//    CONSTRUCTORS(Test3)
-//}
 
 
 int main()
@@ -67,24 +67,29 @@ int main()
     int version = property::property_version();
     int major = property::property_major();
     int minor = property::property_minor();
-//
+    
     std::cout << "version: " << version << "\n";
     std::cout << "major: " <<  major << "\n";
     std::cout << "minor: " <<  minor << "\n";
+    
     Test3 test{"test", ""};
-//    test.age.set(42);
-//    test.is_booled.set(true);
-    test.test1.age.set(42);
-//    test.test1.childs.push_back("new2");
+    test.age.set(24);
+
+    
+    auto test_child = Test2("new_test_child","desc test_child");
+    test_child.age.set(48);
+    test_child.test1.age.set(42);
+    test_child.test1.childs.push_back("new string");
+    test_child.test1.childs.push_back("new string 2");
+    test.test_childs.push_back(test_child);
+    
     std::string serdata;
-    auto test_value = Test2("new_test","desc test");
-    test.test_childs.push_back(test_value);
-    test.test_childs[0].age.set(42);
     test.serialize([&serdata](const std::string &sd) {
-        std::cout << sd << '\n';
+//        std::cout << "\n" << sd << '\n';
         serdata = sd;
     });
-    Test3 ser_data{"test", ""};
+    
+    Test3 ser_data;
     try {
       ser_data.deserialize(serdata);
     }
@@ -92,20 +97,19 @@ int main()
       std::cout << e.what();
       return -1;
     }
-//
-    ser_data.age.set(92);
-    ser_data.test1.childs.push_back("new 3");
-    ser_data.test1.childs.push_back("new 4");
-    ser_data.test1.childs.push_back("new 5");
-    ser_data.test1.age.set(1488);
-    //ser_data.test1.childs.push_back("new 2");
-    //ser_data.test1.childs.push_back("new 2");
+    
 
-//    ser_data.test_childs[1].age.set(92);
     ser_data.serialize([](const std::string &sd) {
       std::cout << "\n" << sd << "\n";
     });
+    
+    if(test == ser_data) {
+        DEBUG("Test3 ser/deser is worked perfectly");
+        return 0;
+    }
 
+    DEBUG("Test3 ser/deser is not worked perfectly");
+    return 1;
 }
 //#include <yaml-cpp/yaml.h>
 //#include <string>

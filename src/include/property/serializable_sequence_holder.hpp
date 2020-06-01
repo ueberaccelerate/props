@@ -95,6 +95,14 @@ struct holder<ObjectType::sequence, std::vector<O>> {
             throw std::out_of_range("index > size() !!!");
         return holder_object.value[index];
     }
+    O operator[](const size_t index) const {
+        if (index > holder_object.value.size())
+            throw std::out_of_range("index > size() !!!");
+        return holder_object.value[index];
+    }
+    auto size() const {
+        return holder_object.value.size();
+    }
 };
 
 template <typename O>

@@ -107,13 +107,11 @@ struct holder<ObjectType::serialize, Serializable<O>> {
         if (root.size() != holder_node.size()) throw size_serialize_error();
 
         YAML::iterator header = root.begin();
-        std::cout << header->second.Tag() << " ###\n";
-        std::string header_tag = header->second.Tag();
+        const auto &header_tag = header->second.Tag();
         if (header_tag != holder_object.type_name) {
-            std::cout << header_tag << " " << holder_object.type_name << '\n';
             throw parser_serialize_error("hi->first != ri->first");
         }
-        //        if (header.Tag())
+        
         for (YAML::iterator ri = std::next(root.begin()),
                             hi = std::next(holder_node.begin());
              ri != root.end(); ++ri, ++hi) {

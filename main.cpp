@@ -7,7 +7,6 @@
 class Test SERIALIZETHIS(Test)
 {
     SCALAR(age, int, "age of test");
-    SCALAR(name, std::string, "name of test");
     SEQUENCE(childs, std::string, "names vector");
     public:
 
@@ -18,8 +17,6 @@ class Test SERIALIZETHIS(Test)
 class Test2 SERIALIZETHIS(Test2)
 {
     SCALAR(age, int, "age of test");
-    SCALAR(is_booled, bool, "booled of test");
-//  SCALAR(name, std::string, "name of test");
     SCALAR(test1, Test, "name of test");
     SEQUENCE(test_childs, Test, "names vector");
 //  SCALAR(test2, Test, "name of test");
@@ -31,6 +28,21 @@ class Test2 SERIALIZETHIS(Test2)
 public:
 
     CONSTRUCTORS(Test2)
+};
+class Test3 SERIALIZETHIS(Test3)
+{
+    SCALAR(age, int, "age of test");
+    SCALAR(test1, Test, "name of test");
+    SEQUENCE(test_childs, Test2, "names vector");
+//  SCALAR(test2, Test, "name of test");
+//  SCALAR(test3, Test, "name of test");
+//  SCALAR(test4, Test, "name of test");
+//  SCALAR(test5, Test, "name of test");
+//  SCALAR(test6, Test, "name of test");
+//  SCALAR(name3, std::string, "name of test");
+public:
+
+    CONSTRUCTORS(Test3)
 };
 //
 //class Test3 SERIALIZETHIS(Test3)
@@ -59,17 +71,20 @@ int main()
     std::cout << "version: " << version << "\n";
     std::cout << "major: " <<  major << "\n";
     std::cout << "minor: " <<  minor << "\n";
-    Test2 test;
-    test.age.set(42);
-    test.is_booled.set(true);
-    test.test1.childs.push_back("new");
-    test.test1.childs.push_back("new2");
+    Test3 test{"test", ""};
+//    test.age.set(42);
+//    test.is_booled.set(true);
+    test.test1.age.set(42);
+//    test.test1.childs.push_back("new2");
     std::string serdata;
+    auto test_value = Test2("new_test","desc test");
+    test.test_childs.push_back(test_value);
+    test.test_childs[0].age.set(42);
     test.serialize([&serdata](const std::string &sd) {
+        std::cout << sd << '\n';
         serdata = sd;
     });
-
-    Test2 ser_data;
+    Test3 ser_data{"test", ""};
     try {
       ser_data.deserialize(serdata);
     }
@@ -77,7 +92,7 @@ int main()
       std::cout << e.what();
       return -1;
     }
-
+//
     ser_data.age.set(92);
     ser_data.test1.childs.push_back("new 3");
     ser_data.test1.childs.push_back("new 4");
@@ -86,6 +101,7 @@ int main()
     //ser_data.test1.childs.push_back("new 2");
     //ser_data.test1.childs.push_back("new 2");
 
+//    ser_data.test_childs[1].age.set(92);
     ser_data.serialize([](const std::string &sd) {
       std::cout << "\n" << sd << "\n";
     });

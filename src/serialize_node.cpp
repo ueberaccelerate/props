@@ -4,6 +4,8 @@
 
 #include <ueberlog/ueberlog.hpp>
 
+#include <stack>
+
 //#include <property/serializable_serialize_holder.hpp>
 
 namespace property {

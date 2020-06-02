@@ -82,7 +82,7 @@ namespace property {
     constexpr std::string_view deduce_prop_type_name(T && type, std::string_view stoke_type_name)
     {
       if constexpr (is_base_of_holder<T>) {
-        return stoke_type_name;
+        return "!serialize!";
       }
       if constexpr (std::is_fundamental_v<T>) {
         return stoke_type_name;

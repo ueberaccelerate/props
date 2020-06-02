@@ -14,35 +14,14 @@
 #include <ueberlog/ueberlog.hpp>
 
 namespace property {
-class serialize_error : public std::exception {};
-class empty_serialize_error : public serialize_error {
-   public:
-    virtual const char *what() const throw() override {
-        return "serialize: empty serialize data error";
-    }
-};
-class size_serialize_error : public serialize_error {
-   public:
-    virtual const char *what() const throw() override {
-        return "serialize: dismatch serialize data and class member";
-    }
-};
-class parser_serialize_error : public serialize_error {
-    std::string_view message;
 
-   public:
-    parser_serialize_error(std::string_view message) : message{message} {}
-    virtual const char *what() const throw() override { return message.data(); }
-};
 template <typename O>
 struct holder<ObjectType::serialize, Serializable<O>> {
     using ResultFunction =
         std::function<void(const std::string &serialize_data)>;
     using value_type = Serializable<O *>;
-
    public:
     value_type holder_object;
-
    public:
     holder()
         : holder{"default_name", "default_desc", "default_type", nullptr} {}
@@ -51,7 +30,7 @@ struct holder<ObjectType::serialize, Serializable<O>> {
         : holder_object{name, desc, type_name, ObjectType::serialize, parent} {
         DEBUG("created holder object: %s\n", name);
         if (parent) {
-            holder_object.parent->childs.insert(&holder_object);
+            holder_object.parent->childs.insert(SerializeNodePtr(&holder_object, StackDeleter<SerializeNode>{}));
 
             parent->node[name] = holder_object.node;
             parent->node[name].SetTag(type_name);
@@ -77,7 +56,7 @@ struct holder<ObjectType::serialize, Serializable<O>> {
 
    public:
     void setParent(SerializeNode *parent) {
-        parent->childs.insert(&holder_object);
+        parent->childs.insert(SerializeNodePtr(&holder_object, StackDeleter<SerializeNode>{}));
         //          parent->node[holder_object.name] = holder_object.node;
         //          parent->node[holder_object.name].SetTag(holder_object.type_name);
         //          holder_object.node[holder_object.name] = "";

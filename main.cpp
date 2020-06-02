@@ -100,7 +100,9 @@ int main()
     
 
     ser_data.serialize([](const std::string &sd) {
-      std::cout << "\n" << sd << "\n";
+        property::serialize(sd, [](property::SerializeNodePtr root) {
+            std::cout << "root: " << root->childs.size() << "\n";
+        });
     });
     
     if(test == ser_data) {

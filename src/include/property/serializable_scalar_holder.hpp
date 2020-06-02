@@ -24,7 +24,7 @@ struct holder<ObjectType::scalar, O> : base_holder<O> {
    private:
     void setup_scalar_holder() {
         if (holder_object.parent) {
-            holder_object.parent->childs.insert(&holder_object);
+            holder_object.parent->childs.insert(SerializeNodePtr(&holder_object, StackDeleter<SerializeNode>{}));
 
             holder_object.parent->node[holder_object.name] =
                 holder_object.value;

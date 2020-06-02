@@ -21,7 +21,7 @@ struct holder<ObjectType::sequence, std::vector<O>> {
     type holder_object;
     void setup_sequence_holder() {
         if (holder_object.parent) {
-            holder_object.parent->childs.insert(&holder_object);
+            holder_object.parent->childs.insert(SerializeNodePtr(&holder_object, StackDeleter<SerializeNode>{}));
 
             if constexpr (is_base_of_holder<O>) {
                 holder_object.parent->node[holder_object.name] =
@@ -74,8 +74,8 @@ struct holder<ObjectType::sequence, std::vector<O>> {
 
     void push_back(const O& value) {
         if constexpr (is_base_of_holder<O>) {
-            holder_object.value.push_back(value);
             auto& constless = const_cast<O&>(value);
+            holder_object.value.push_back(value);
 
             constless.setParent(&holder_object);
             holder_object.parent->node[holder_object.name].push_back(

@@ -1,70 +1,88 @@
 #ifndef PROPERTY_SERIALIZE_NODE_HPP
 #define PROPERTY_SERIALIZE_NODE_HPP
 
-#include <string>
-#include <string_view>
-#include <functional>
-#include <queue>
-
 #include <yaml-cpp/yaml.h>
 
-//#include <vector>
-//#include <map>
-//#include <iostream>
-//#include <string_view>
-//#include <fstream>
-//#include <cmath>
-//#include <functional>
-//#include <type_traits>
+#include <functional>
+#include <queue>
+#include <string>
+#include <string_view>
+#include <unordered_set>
+#include <iostream>
 
 namespace property {
-template < typename T >
-constexpr std::string_view deduce_prop_type_name(T && type)
-{
-    return "int";
-}
+
+class serialize_error : public std::exception {};
+class empty_serialize_error : public serialize_error {
+   public:
+    virtual const char *what() const throw() override {
+        return "serialize: empty serialize data error";
+    }
+};
+class size_serialize_error : public serialize_error {
+   public:
+    virtual const char *what() const throw() override {
+        return "serialize: dismatch serialize data and class member";
+    }
+};
+class parser_serialize_error : public serialize_error {
+    std::string_view message;
+
+   public:
+    parser_serialize_error(std::string_view message) : message{message} {}
+    virtual const char *what() const throw() override { return message.data(); }
+};
 
 /*
-*
-*    ObjectType:
-*      case serialize: // ...
-*      case scalar: // ...
-*      case sequence: // ...
-*      case map: // ...
-* */
-    enum class ObjectType {
-        serialize,
-        scalar,
-        sequence,
-        map
-    };
+ *
+ *    ObjectType:
+ *      case serialize: // ...
+ *      case scalar: // ...
+ *      case sequence: // ...
+ *      case map: // ...
+ * */
+enum class ObjectType { serialize, scalar, sequence, map };
+struct SerializeNode;
 
-    struct SerializeInfo {
-        std::string_view name;
-        std::string_view type_name;
-        std::string_view desc;
-        ObjectType object_type;
-        std::string data;
-    };
+using SerializeNodePtr = std::shared_ptr<SerializeNode>;
 
-    struct SerializeNode: SerializeInfo {
-        using SerializeQueue = std::queue<SerializeInfo>;
-        using VoidFunction = std::function < void( SerializeQueue &) >;
-        struct Impl;
-        std::unique_ptr<Impl> impl;
-      
+template <typename T>
+class StackDeleter {
+public:
+    StackDeleter &operator()(T *) {
+        return *this;
+    }
+};
+struct SerializeNode {
+    std::string name;
+    std::string type_name;
+    std::string desc;
+    ObjectType object_type;
 
-      
-        VoidFunction serialize;
-        VoidFunction deserialize;
-        
-        SerializeNode();
-        SerializeNode(const char *name, const char *desc, const char *type_name, const ObjectType object_type);
-        ~SerializeNode();
-        
-      
-        std::string commit(const SerializeQueue &out);
-    };
-}
+    YAML::Node node;
+    SerializeNodePtr parent;
 
-#endif // PROPERTY_SERIALIZE_NODE_HPP
+    std::unordered_set<SerializeNodePtr> childs;
+
+    using VoidFunction = std::function<void(YAML::Node)>;
+
+    VoidFunction serialize;
+    VoidFunction deserialize;
+
+    SerializeNode();
+    SerializeNode(const char *name, const char *desc, const char *type_name,
+                  const ObjectType object_type, SerializeNode *parent);
+    ~SerializeNode();
+    
+    template <typename T>
+    T as() {
+        std::cout << node.Tag();
+        return {};
+    }
+};
+void serialize(std::string_view serdata,
+               std::function<void(SerializeNodePtr )>);
+
+}  // namespace property
+
+#endif  // PROPERTY_SERIALIZE_NODE_HPP

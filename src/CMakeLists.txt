@@ -8,6 +8,8 @@ target_sources( propertysdk PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/include/property/serializable.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/include/property/serializable_holder.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/include/property/serializable_scalar_holder.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/property/serializable_sequence_holder.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/property/serializable_map_holder.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/include/property/serializable_serialize_holder.hpp
 
 

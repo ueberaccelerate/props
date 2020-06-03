@@ -3,95 +3,73 @@
 #include <yaml-cpp/yaml.h>
 
 #include <ueberlog/ueberlog.hpp>
-#include <strstream>
-namespace property {
-struct SerializeNode::Impl {
-    YAML::Node yaml_node;
-    SerializeNode *node;
-    Impl(SerializeNode *node) : node{node}
-    {
-    }
-};
 
-// it need to unique_ptr forward declaration
+#include <stack>
+
+//#include <property/serializable_serialize_holder.hpp>
+
+namespace property {
+
+
+SerializeNode::SerializeNode() = default;
 SerializeNode::~SerializeNode() = default;
 
-SerializeNode::SerializeNode() : impl{std::make_unique<SerializeNode::Impl>(this)} {
-    
-}
-SerializeNode::SerializeNode(const char *name, const char *desc, const char *type_name, const ObjectType object_type) :  SerializeInfo{name, type_name, desc, object_type, ""}, impl{std::make_unique<SerializeNode::Impl>(this)}
+SerializeNode::SerializeNode(const char *name, const char *desc, const char *type_name, const ObjectType object_type, SerializeNode *parent) : name{name}, type_name{type_name}, desc{desc}, object_type{object_type}, parent{SerializeNodePtr(parent,StackDeleter<SerializeNode>{})}
 {
-    DEBUG("created node: %s %s %s \n", name, desc, type_name);
+    DEBUG("created node: %s %s %s \n", this->name.data(), this->desc.data(), this->type_name.data());
 }
 
-std::string SerializeNode::commit(const SerializeQueue &out)
+void serialize_as_sequence(YAML::Node node, std::stack<YAML::Node>& stack_serialize, SerializeNodePtr parent) {
+    if (node.IsScalar()) {
+
+        return;
+    }
+    if (node.IsSequence()) {
+        stack_serialize.push(node);
+        
+    }
+    if (node.IsMap()) {
+        stack_serialize.push(node);
+    }
+}
+
+void serialize_as_map(YAML::Node node, std::stack<YAML::Node>& stack_serialize, SerializeNodePtr parent) {
+    if (node.IsScalar()) {
+        return;
+    }
+    if (node.IsSequence()) {
+        stack_serialize.push(node);
+    }
+    if (node.IsMap()) {
+        stack_serialize.push(node);
+    }
+}
+
+void serialize(std::string_view serdata, std::function<void (SerializeNodePtr root)> processed)
 {
-    SerializeQueue buffer = out;
-    YAML::Emitter emitter;
-    YAML::Node root;
-    while (!buffer.empty()) {
-        auto &element = buffer.front();
-        buffer.pop();
-        if (element.object_type == ObjectType::serialize) {
-            std::stringstream stream;
-            stream << element.type_name << ":" << element.desc;
-            if(root.IsNull()) {
-                root[element.name.data()] = stream.str();
-            } else {
-                YAML::Node node;
-                node[element.name.data()] = stream.str();
-                root["childs"].push_back(node);
+    if( serdata.empty() ) throw empty_serialize_error();
+    YAML::Node root = YAML::Load(serdata.data());
+    std::stack<YAML::Node> stack_serialize;
+    
+    stack_serialize.push(root);
+    auto parent = std::make_shared<SerializeNode>();
+    
+    auto stack_parent = parent;
+
+    
+    while (!stack_serialize.empty()) {
+        auto stack_object = stack_serialize.top(); stack_serialize.pop();
+        for ( YAML::const_iterator node = stack_object.begin(); node != stack_object.end(); ++node) {
+            if (stack_object.IsMap()) {
+                std::cout << " \n\n"<< node->first.as<std::string>() << " -> " << node->second << "\n\n";
+                serialize_as_map(node->second, stack_serialize, stack_parent);
+            }
+            if (stack_object.IsSequence()) {
+                serialize_as_sequence(node->as<YAML::Node>(), stack_serialize, stack_parent);
             }
         }
-        if (element.object_type == ObjectType::scalar) {
-            YAML::Node node;
-            std::stringstream stream;
-            stream << element.data << ":" << element.type_name << ":" << element.desc;
-            node[element.name.data()] = stream.str();
-            root["childs"].push_back(node);
-        }
     }
-    emitter << root;
-    return emitter.c_str();
+    processed(parent);
 }
 
-//void SerializeNode::serialization(VoidFunction serializator)
-//{
-//  /*
-//   std::string_view name;
-//   std::string_view type_name;
-//   std::string_view desc;
-//   */
-//    YAML::Emitter out;
-//    YAML::Node root;
-//    std::strstream root_stream;
-//    root_stream <<  type_name.data() << " " << desc.data();
-//    root[name.data()] = root_stream.str();
-//
-//    {
-//      std::strstream prop_stream;
-//      YAML::Node prop;
-//      prop_stream << "int The age of test";
-//      prop["age"] = prop_stream.str();
-//      root["childs"].push_back(prop);
-//    }
-//
-////    out << YAML::BeginDoc;
-//    out << root;
-////    out << YAML::EndDoc;
-////    root << YAML::BeginMap;
-////    root << YAML::Key << "name";
-////    root << YAML::Value;
-////
-////    root << YAML::Key << "type_name";
-////    root << YAML::Value << type_name.data();
-////    root << YAML::Key << "desc";
-////    root << YAML::Value << desc.data();
-////
-////    root << YAML::EndMap;
-//
-//
-//
-//    DEBUG("output:\n%s\n", out.c_str());
-//}
 }

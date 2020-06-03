@@ -14,56 +14,98 @@
 #include <ueberlog/ueberlog.hpp>
 
 namespace property {
-    template < typename O >
-    struct holder < ObjectType::serialize, Serializable < O >> {
-        using ResultFunction = std::function < void (const std::string &serialize_data) >;
-        using value_type = Serializable < O * >;
 
-        value_type holder_object;
-        std::vector < SerializeNode * > childs;
-        private:
-        std::shared_ptr<SerializeNode> null_holder_object;
-        bool is_null_holder_added{false};
-        public:
-        holder() = default;
-        holder(const char *name, const char *desc, const char *type_name) : holder_object { name, desc, type_name, ObjectType::serialize }, childs {} {
-            DEBUG("created holder object: %s\n", name);
-            push_null_holder();
-            holder_object.serialize = [&] (SerializeNode::SerializeQueue& out) {
-                out.push(holder_object);
-                if( !is_null_holder_added ) {
-                    childs.push_back(null_holder_object.get()); is_null_holder_added = !is_null_holder_added;
-                }
-                
-                for (auto child : childs) {
-                    child->serialize(out);
-                }
-                DEBUG("created holder object: %d\n", childs.size());
-            };
-        }
-        protected:
-        void push_null_holder() {
-            // const char *name, const char *desc, const char *type_name, const ObjectType object_type
-            null_holder_object = std::make_shared<SerializeNode> ("end_of_", holder_object.name.data(), holder_object.type_name.data(), ObjectType::serialize );
-            null_holder_object->serialize = [&] (SerializeNode::SerializeQueue& out) {
-                out.push(*null_holder_object);
-            };
-        }
-        public:
-        void serialize(PROPERTY_UNUSED ResultFunction completed)
-        {
-            SerializeNode::SerializeQueue out;
-            holder_object.serialize(out);
-            completed(holder_object.commit(out));
+template <typename O>
+struct holder<ObjectType::serialize, Serializable<O>> {
+    using ResultFunction =
+        std::function<void(const std::string &serialize_data)>;
+    using value_type = Serializable<O *>;
+   public:
+    value_type holder_object;
+   public:
+    holder()
+        : holder{"default_name", "default_desc", "default_type", nullptr} {}
+    holder(const char *name, const char *desc, const char *type_name,
+           SerializeNode *parent)
+        : holder_object{name, desc, type_name, ObjectType::serialize, parent} {
+        DEBUG("created holder object: %s\n", name);
+        if (parent) {
+            holder_object.parent->childs.insert(SerializeNodePtr(&holder_object, StackDeleter<SerializeNode>{}));
+
+            parent->node[name] = holder_object.node;
+            parent->node[name].SetTag(type_name);
+        } else {
+            holder_object.node[name] = "version: 1.0";
+            holder_object.node[name].SetTag(type_name);
         }
 
-        void deserialize(PROPERTY_UNUSED const std::string &serdata)
-        {
+        holder_object.deserialize = [&](YAML::Node newroot) {
+            // serialize object is not main in the scope
+            // so we search it in map by key
+            if (holder_object.parent) {
+                holder_object.node = newroot[holder_object.name];
+            } else {
+                holder_object.node = newroot;
+                holder_object.name = newroot.begin()->first.as<std::string>();
+            }
+            for (auto child : holder_object.childs) {
+                child->deserialize(holder_object.node);
+            }
+        };
+    }
+
+   public:
+    void setParent(SerializeNode *parent) {
+        parent->childs.insert(SerializeNodePtr(&holder_object, StackDeleter<SerializeNode>{}));
+        //          parent->node[holder_object.name] = holder_object.node;
+        //          parent->node[holder_object.name].SetTag(holder_object.type_name);
+        //          holder_object.node[holder_object.name] = "";
+    }
+
+    void serialize(PROPERTY_UNUSED ResultFunction completed) {
+        YAML::Emitter out;
+        out << YAML::BeginMap;
+        for (YAML::const_iterator citrator = holder_object.node.begin();
+             citrator != holder_object.node.end(); ++citrator) {
+            out << YAML::Key << citrator->first << YAML::Value
+                << citrator->second;
         }
-    };
+        out << YAML::EndMap;
+        completed(out.c_str());
+    }
 
-    template < typename O >
-    using Serialize = holder < ObjectType::serialize, Serializable < O >>;
-}
+    void deserialize(PROPERTY_UNUSED const std::string &serdata) {
+        deserialize(YAML::Load(serdata));
+    }
 
-#endif // SERIALIZABLE_SERIALIZE_HOLDER_HPP
+    void deserialize(PROPERTY_UNUSED YAML::Node root) {
+        DEBUG("Validation serdata...\n");
+        YAML::Node &holder_node = holder_object.node;
+
+        if (!root.size()) throw empty_serialize_error();
+        if (root.size() != holder_node.size()) throw size_serialize_error();
+
+        YAML::iterator header = root.begin();
+        const auto &header_tag = header->second.Tag();
+        if (header_tag != holder_object.type_name) {
+            throw parser_serialize_error("hi->first != ri->first");
+        }
+        
+        for (YAML::iterator ri = std::next(root.begin()),
+                            hi = std::next(holder_node.begin());
+             ri != root.end(); ++ri, ++hi) {
+            if (hi->first.as<std::string>() != ri->first.as<std::string>()) {
+                throw parser_serialize_error("hi->first != ri->first");
+            }
+        }
+        DEBUG("Validation serdata...OK\n");
+
+        holder_object.deserialize(root);
+    }
+};
+
+template <typename O>
+using Serialize = holder<ObjectType::serialize, Serializable<O>>;
+}  // namespace property
+
+#endif  // SERIALIZABLE_SERIALIZE_HOLDER_HPP

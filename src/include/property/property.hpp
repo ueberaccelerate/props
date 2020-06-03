@@ -18,8 +18,12 @@ namespace property {
 
 #include "serializable_serialize_holder.hpp"
 #include "serializable_scalar_holder.hpp"
+#include "serializable_sequence_holder.hpp"
+#include "serializable_map_holder.hpp"
 
 #define SCALAR(param_name, param_type, param_desc) serializable_s(param_name, param_type, param_name, param_desc)
+#define SEQUENCE(param_name, param_type, param_desc) serializable_v(param_name, param_type, param_name, param_desc)
+#define MAP(param_name, param_type1, param_type2, param_desc) serializable_m(param_name, param_type1, param_type2, param_name, param_desc)
 
 #define SERIALIZETHIS(type_name) \
  final: public property::Serialize < type_name >
@@ -27,10 +31,8 @@ namespace property {
 /// class_name
 #define CONSTRUCTORS(class_name) \
 public: \
-    class_name() = default; \
-    class_name(const std::string_view &name_, const std::string_view &desc_) : holder { name_.data(), desc_.data(), #class_name } {} \
-    class_name(const std::string_view &name_, const std::string_view &desc_, const std::string_view& type_name_, std::vector < property::SerializeNode * > &childs_) : holder { name_.data(), desc_.data(), type_name_.data() } { \
-        childs_.push_back(&holder_object); \
-    }
+    class_name() : class_name { (std::string("class_name_") + std::string(#class_name)).data(), ""} { } \
+    class_name(const std::string_view &name_, const std::string_view &desc_) : holder { name_.data(), desc_.data(), #class_name, nullptr } {} \
+    class_name (const std::string_view &name_, const std::string_view &desc_, const std::string_view& type_name_, property::SerializeNode *parent) : holder { name_.data(), desc_.data(), type_name_.data(), parent } { } \
 
 #endif // PROPERY_PROPERY_HPP

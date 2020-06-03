@@ -48,6 +48,8 @@ class Test3 SERIALIZETHIS(Test3)
 {
     SCALAR(age, int, "age of test");
     SEQUENCE(test_childs, Test2, "names vector");
+    MAP(map1, std::string, int, "simple map stringe<->int");
+    MAP(map2, std::string, Test, "simple map stringe<->Test");
 public:
     CONSTRUCTORS(Test3)
     
@@ -74,7 +76,10 @@ int main()
     
     Test3 test{"test", ""};
     test.age.set(24);
-
+    test.map1.insert_or_assign("speed", 40);
+    test.map1.insert_or_assign("pressure", 70);
+    auto test_map = Test("test_map", "empty");
+    test.map2.insert_or_assign("just key", test_map);
     
     auto test_child = Test2("new_test_child","desc test_child");
     test_child.age.set(48);
@@ -82,10 +87,10 @@ int main()
     test_child.test1.childs.push_back("new string");
     test_child.test1.childs.push_back("new string 2");
     test.test_childs.push_back(test_child);
+    test_map.childs.push_back("new string");
     
     std::string serdata;
     test.serialize([&serdata](const std::string &sd) {
-//        std::cout << "\n" << sd << '\n';
         serdata = sd;
     });
     
@@ -98,11 +103,13 @@ int main()
       return -1;
     }
     
-
+    ser_data.map1.insert_or_assign("speed", 50);
+    ser_data.map1.insert_or_assign("pressure", 50);
+    test_map.age.set(42);
+    ser_data.map2.insert_or_assign("just key", test_map);
+    test_map.childs.push_back("new string");
     ser_data.serialize([](const std::string &sd) {
-        property::serialize(sd, [](property::SerializeNodePtr root) {
-            std::cout << "root: " << root->childs.size() << "\n";
-        });
+        std::cout << "\n" << sd << "\n";
     });
     
     if(test == ser_data) {
@@ -113,261 +120,3 @@ int main()
     DEBUG("Test3 ser/deser is not worked perfectly");
     return 1;
 }
-//#include <yaml-cpp/yaml.h>
-//#include <string>
-//#include <memory>
-//#include <utility>
-
-//#define SERIALIZE() private: prop root;
-//
-//struct prop {
-//    using Root = prop*;
-//public:
-//    std::string_view name;
-//    std::string_view type_name;
-//    std::string_view type_doc;
-//
-//    prop() = default;
-//    prop(const std::string_view name,const std::string_view type_name, const std::string_view type_doc, Root root ) :
-//    name{name},
-//    type_name{type_name},
-//    type_doc{type_doc},
-//    root{root}
-//    {
-//
-//    }
-//private:
-//    YAML::Node node;
-//    Root root;
-//};
-//template<typename T>
-//constexpr std::string_view deduce_prop_type_name(T &&type) {
-//    return "";
-//}
-//
-//#define SCALAR(prop_name, prop_type, prop_doc) public: prop prop_name{#prop_name, deduce_prop_type_name(prop_type{}), prop_doc, &root};
-//
-//class Test final {
-//    SERIALIZE();
-//    SCALAR(age, int, "The age of Test class");
-//
-//public:
-//};
-//
-//template<typename Serialize, typename ResultFunction, typename = std::enable_if_t<false, Serialize>>
-//void serialize(Serialize object, ResultFunction result) {
-//
-//}
-
-//struct prop {
-//    std::string name;
-//    std::string type_name;
-//    int value;
-//protected:
-//    YAML::Node node;
-//    YAML::Node *parent;
-//    bool is_serialize;
-//public:
-//    prop() = default;
-//    prop(std::string_view name, std::string_view type_name, YAML::Node *parent, bool is_serialize = false) : name{name}, type_name{type_name}, parent{parent}, is_serialize{is_serialize}
-//    {
-//        if (is_serialize) {
-//            node[this->name] = "version: 1.0";
-//            node[this->name].SetTag(type_name.data());
-//        }
-//        if (parent) {
-//            if (is_serialize) {
-//                (*parent)[this->name] = "version: 1.0";
-//                (*parent)[this->name].SetTag(type_name.data());
-//                node[this->name + "_doc"] = type_name.data();
-//                node.remove(this->name);
-//                (*parent)[this->name] = node;
-//            } else {
-//                (*parent)[this->name] = value;
-//                (*parent)[this->name].SetTag(type_name.data());
-//            }
-//        }
-//    }
-//
-//    void serialize(std::function<void (const std::string &serdata)> completed)
-//    {
-//        YAML::Emitter out;
-//        if (parent) {
-//            out << YAML::BeginMap;
-//            out << *parent;
-//            out << YAML::EndMap;
-//        } else {
-//            out << YAML::BeginMap;
-////            YAML::Node first;
-////            YAML::Node second;
-////
-////            YAML::Node root;
-////
-////            root["age"] = 42;
-////            root["name"] = "kek";
-////            {
-////                YAML::Node child;
-////                child.SetStyle(YAML::EmitterStyle::value::Block);
-////                child["age"] = 42;
-////                child["name"] = "kek";
-////                root["child_class"] = child;
-////            }
-//            for (YAML::const_iterator citerator = node.begin(); citerator != node.end(); ++citerator) {
-//                out << YAML::Key << citerator->first << YAML::Value << citerator->second;
-//            }
-//
-//            out << YAML::EndMap;
-////            out << node;
-//        }
-//        completed(out.c_str());
-//    }
-//
-//    void deserialize(const std::string &serdata)
-//    {
-//        YAML::Node nodes = YAML::Load(serdata.c_str());
-//
-//        for (YAML::const_iterator it = nodes.begin(); it != nodes.end(); ++it) {
-//            std::cout << it->first << it->second.Tag() <<  "\n";
-//        }
-//    }
-//
-//    int &operator=(const int v)
-//    {
-//        node[name.data()] = value = v;
-//        node[name.data()].SetTag(type_name.data());
-//        return value;
-//    }
-//};
-//
-//class Test : public prop {
-//public:
-//prop age{ "age", "int", &node };
-//prop age2{ "age2", "int", &node };
-//Test() : prop{"test1", "Test", nullptr, true}
-//{
-//}
-//
-//Test(std::string_view name, std::string_view type_name, YAML::Node *root) : prop{name, type_name, root, true}
-//{
-//}
-//};
-//
-//class Test2 : public prop {
-//public:
-//prop age{ "age", "int", &node };
-//Test test{ "test", "Test", &node };
-//
-//Test2() : prop{"t", "Test2", nullptr, true}
-//{
-//}
-//
-//Test2(std::string_view name, std::string_view type_name, YAML::Node *root) : prop{name, type_name, root, true}
-//{
-//}
-//};
-//
-//class Test3 : public prop {
-//public:
-//prop age{ "age", "int", &node };
-//Test2 test{ "test", "Test2", &node };
-//
-//Test3() : prop{"t", "Test3", nullptr, true}
-//{
-//}
-//};
-//#include <vector>
-//#include <map>
-//#include <iostream>
-//#include <string_view>
-//#include <fstream>
-//#include <cmath>
-//#include <functional>
-//#include <type_traits>
-
-//
-//template<typename O>
-//struct holder<ObjectType::sequence, std::vector<O>> {
-//  using type = Serializable<std::vector<O>>;
-//  type holder_object;
-//  holder(const char* name_, const char* desc_, const char* type_name_, std::vector<SerializeNode*>& childs) : holder_object{name_, desc_, "sequence"} {
-//      childs.push_back(&holder_object);
-//      holder_object.value = {};
-//      holder_object.serialize = [&] () {
-//        std::cout << holder_object.name << " " << holder_object.type_name << "\n";
-//      };
-//  }
-//};
-//
-//template<typename K, typename O>
-//struct holder<ObjectType::map, Serializable<std::map<K, O>>> {
-//  using type = Serializable<std::map<K,O>>;
-//  type holder_object;
-//  holder(const char* name_, const char* desc_, std::vector<SerializeNode*> &childs) : holder_object{name_, desc_, "map"} {
-//    //childs.push_back(&holder_object.node);
-//    }
-//};
-//
-//
-//template<typename O>
-//using Serialize = holder<ObjectType::serialize, Serializable<O>>;
-//template<typename O>
-//using Scalar = std::conditional_t< is_base_of_holder<O>, O, holder<ObjectType::scalar, O>>;
-//template<typename O>
-//using Sequence = holder<ObjectType::sequence, std::vector<O>>;
-//template<typename K, typename O>
-//using Map = holder<ObjectType::map, Serializable<std::map<K, O>>>;
-//
-//#define serializable_s(param_name, param_type, param_name_text, param_desc) \
-//  private: \
-//    Scalar<param_type>  param_name{ # param_name, param_desc, #param_type, this->childs};
-//
-//#define serializable_v(param_name, param_type, param_name_text, param_desc) \
-//  private: \
-//    Sequence<param_type>  param_name{ # param_name, param_desc, #param_type, this->childs};
-//
-//#define serializable_m(param_name, param_type1, param_type2, param_name_text, param_desc) \
-//  private: \
-//    Map<param_type1, param_type2>  param_name{ # param_name, param_desc, this->childs};
-//
-//#define SCALAR(param_name, param_type, param_desc) serializable_s(param_name, param_type, param_name, param_desc)
-//#define SEQUENCE(param_name, param_type, param_desc) serializable_v(param_name, param_type, param_name, param_desc)
-//#define MAP(param_name, param_type1, param_type2, param_desc) serializable_m(param_name, param_type1, param_type2, param_name, param_desc)
-//
-//#define SERIALIZETHIS(type_name) \
-//  final : public Serialize<type_name>
-//#define CONSTRUCTORS(class_name) \
-//  public: \
-//  class_name(const std::string_view &name_, const std::string_view &desc_) : holder{name_.data(), desc_.data(), #class_name} {} \
-//  class_name(const std::string_view &name_, const std::string_view &desc_, const std::string_view& type_name_, std::vector<SerializeNode*> &childs_) : holder{name_.data(), desc_.data(), type_name_.data()} { \
-//    childs_.push_back(&holder_object); \
-//    std::copy(std::begin(childs), std::end(childs),  std::back_inserter(childs_)); \
-//  }
-//
-//class Test SERIALIZETHIS(Test) {
-//  SEQUENCE(param7, int, "int sequence value");
-//  SEQUENCE(param8, int, "int sequence value");
-//  SEQUENCE(param9, int, "int sequence value");
-//  SEQUENCE(param, int, "int sequence value");
-////  MAP     (param3, int, int, "int map value");
-//  public:
-//  CONSTRUCTORS(Test)
-//};
-//class Test2 SERIALIZETHIS(Test2){
-////  serializethis(Test2, "The test2 class that you can ser/des")
-//  SCALAR  (param1,  float, "float value");
-//  SCALAR  (param2,  float, "float value");
-//  SCALAR  (param3,  float, "float value");
-//  SCALAR  (param4,  float, "float value");
-//  SCALAR  (param5,  float, "float value");
-//  SCALAR  (param6,  Test, "Test value");
-//  CONSTRUCTORS(Test2)
-//};
-//
-//int main() {
-//  DEBUG("yaml start serialize\n");
-//  Test2 t{"t", "The test2 class"};
-//
-//  t.serialize();
-//
-//  return 0;
-//}

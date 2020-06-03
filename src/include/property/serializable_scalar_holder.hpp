@@ -87,7 +87,7 @@ auto deduce_type() {
    public:                                                                  \
     property::Scalar<param_type> param_name{               \
         #param_name, param_desc,                                            \
-        property::deduce_prop_type_name(param_type{}, #param_type).data(),  \
+        property::deduce_prop_type_name<param_type>(#param_type).data(),  \
         &this->holder_object};
 
 #endif  // PROPERTY_SERIALIZABLE_SCALAR_HOLDER_HPP

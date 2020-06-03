@@ -23,34 +23,27 @@ struct holder<ObjectType::sequence, std::vector<O>> {
         if (holder_object.parent) {
             holder_object.parent->childs.insert(SerializeNodePtr(&holder_object, StackDeleter<SerializeNode>{}));
 
+            holder_object.parent->node[holder_object.name].SetTag(
+                holder_object.type_name);
             if constexpr (is_base_of_holder<O>) {
-                holder_object.parent->node[holder_object.name] =
-                    YAML::Load("[]");
-                ;
-                holder_object.parent->node[holder_object.name].SetTag(
-                    holder_object.type_name);
 
                 holder_object.deserialize = [&](YAML::Node newroot) {
-                    auto holderValue = std::make_shared<O>();
+                    O holderValue{};
                     YAML::Node vectorofholder = newroot[holder_object.name];
                     for (YAML::iterator holder = vectorofholder.begin();
                          holder != vectorofholder.end(); ++holder) {
-                        holderValue->setParent(&holder_object);
-                        holderValue->deserialize(*holder);
-                        holder_object.value.push_back(*holderValue);
-                        holder_objects.push_back(holderValue);
+                        holderValue.deserialize(*holder);
+                        holder_object.value.push_back(holderValue);
                     }
                 };
             } else {
                 holder_object.parent->node[holder_object.name] =
                     holder_object.value;
-                holder_object.parent->node[holder_object.name].SetTag(
-                    holder_object.type_name);
+                
                 holder_object.deserialize = [&](YAML::Node newroot) {
                     YAML::Node newvalue = newroot[holder_object.name];
                     newvalue.SetTag(holder_object.type_name);
                     holder_object.value = newvalue.as<std::vector<O>>();
-
                     newvalue = holder_object.value;
                 };
             }
@@ -74,10 +67,9 @@ struct holder<ObjectType::sequence, std::vector<O>> {
 
     void push_back(const O& value) {
         if constexpr (is_base_of_holder<O>) {
-            auto& constless = const_cast<O&>(value);
+//            auto& constless = const_cast<O&>(value);
             holder_object.value.push_back(value);
-
-            constless.setParent(&holder_object);
+//            constless.setParent(&holder_object);
             holder_object.parent->node[holder_object.name].push_back(
                 value.holder_object.node);
         } else {
@@ -107,24 +99,13 @@ struct holder<ObjectType::sequence, std::vector<O>> {
 
 template <typename O>
 using Sequence = holder<ObjectType::sequence, std::vector<O>>;
-
-// template<typename K, typename O>
-// struct holder<ObjectType::map, Serializable<std::map<K, O>>> {
-//  using type = Serializable<std::map<K,O>>;
-//  type holder_object;
-//  holder(const char* name_, const char* desc_, std::vector<SerializeNode*>
-//  &childs) : holder_object{name_, desc_, "map"} {
-//    //childs.push_back(&holder_object.node);
-//    }
-//};
-
 }  // namespace property
 
 #define serializable_v(param_name, param_type, param_name_text, param_desc) \
    public:                                                                  \
     property::Sequence<param_type> param_name{                              \
         #param_name, param_desc,                                            \
-        property::deduce_prop_type_name(param_type{}, #param_type).data(),  \
+        property::deduce_prop_type_name<param_type>( #param_type).data(),  \
         &this->holder_object};
 
 #endif  // PROPERTY_SERIALIZABLE_SEQUENCE_HOLDER_HPP

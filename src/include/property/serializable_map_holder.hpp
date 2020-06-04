@@ -20,10 +20,19 @@ namespace property {
                 static_assert(!is_base_of_holder<K>, "don't use serializable as key");
                 static_assert(!is_vector_type_v<K>, "don't use vector as key");
                 
+                holder_object.node.reset();
+                
+                holder_object.parent->node[holder_object.name] = holder_object.node;
+                holder_object.parent->node[holder_object.name + "_doc"] = holder_object.desc;
+                
+                holder_object.parent->node[holder_object.name].SetTag(
+                    holder_object.type_name);
+                holder_object.parent->node[holder_object.name + "_doc"].SetTag("doc");
+                
+                
                 if constexpr (is_base_of_holder<O>) {
-                    holder_object.parent->node[holder_object.name] = holder_object.node;
-                    holder_object.parent->node[holder_object.name].SetTag(
-                        holder_object.type_name);
+                    
+
 
                     holder_object.deserialize = [&](YAML::Node newroot) {
                         YAML::Node newvalue = newroot[holder_object.name];
@@ -39,9 +48,7 @@ namespace property {
                         holder_object.node = newvalue;
                     };
                 } else {
-                    holder_object.parent->node[holder_object.name] = holder_object.node;
-                    holder_object.parent->node[holder_object.name].SetTag(
-                        holder_object.type_name);
+                    
                     holder_object.deserialize = [&](YAML::Node newroot) {
                         YAML::Node newvalue = newroot[holder_object.name];
                         newvalue.SetTag(holder_object.type_name);
@@ -77,9 +84,19 @@ namespace property {
             if constexpr (is_base_of_holder<O>) {
                 holder_object.value.insert_or_assign(key, value);
                 holder_object.node[key] = value.holder_object.node;
+//                holder_object.node[key].SetTag(holder_object.type_name);
             } else {
+                holder_object.value.insert_or_assign(key, value);
                 holder_object.node[key] = value;
+//                holder_object.node[key].SetTag(holder_object.type_name);
             }
+        }
+        auto size() const {
+            return holder_object.value.size();
+        }
+        
+        O &operator[](const K &key) {
+            return holder_object.value[key];
         }
     };
 

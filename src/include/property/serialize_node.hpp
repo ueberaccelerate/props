@@ -74,10 +74,12 @@ struct SerializeNode {
                   const ObjectType object_type, SerializeNode *parent);
     ~SerializeNode();
     
-    template <typename T>
-    T as() {
-        std::cout << node.Tag();
-        return {};
+    template<typename T>
+    inline auto as() {
+        if( type_name == "string") {
+        return node[name].as<std::string>();
+        }
+        return 0;
     }
 };
 void serialize(std::string_view serdata,

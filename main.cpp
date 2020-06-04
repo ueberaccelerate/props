@@ -27,14 +27,12 @@ class Test SERIALIZETHIS(Test)
 
 class Test2 SERIALIZETHIS(Test2)
 {
-    SCALAR(age, int, "age of test");
     SCALAR(test1, Test, "name of test");
     SEQUENCE(test_childs, Test, "names vector");
 public:
     CONSTRUCTORS(Test2)
     
     bool operator==(const Test2 &test2) const  {
-        if (this->age.get() != test2.age.get()) return false;
         if (this->test1 != test2.test1) return false;
         
         if (this->test_childs.size() != test2.test_childs.size()) return false;
@@ -46,20 +44,29 @@ public:
 };
 class Test3 SERIALIZETHIS(Test3)
 {
-    SCALAR(age, int, "age of test");
     SEQUENCE(test_childs, Test2, "names vector");
-    MAP(map1, std::string, int, "simple map stringe<->int");
-    MAP(map2, std::string, Test, "simple map stringe<->Test");
+    MAP(map1, std::string, int, "simple map string<->int");
+    MAP(map2, std::string, Test, "simple map string<->Test");
 public:
     CONSTRUCTORS(Test3)
     
     bool operator==(const Test3 &test3) const{
-        if (this->age.get() != test3.age.get()) return false;
+        
         if (this->test_childs.size() != test3.test_childs.size()) return false;
-        for (size_t i = 0; i < this->test_childs.size(); ++i) {
-            if(this->test_childs[i] != test3.test_childs[i]) return false;
-        }
-        return true;
+        if (this->map1.size() != test3.map1.size()) return false;
+        if (this->map2.size() != test3.map2.size()) return false;
+        
+        auto is_equal_two_container = [](const auto &container1, const auto &container2) {
+            for (size_t i = 0; i < container1.size(); ++i) {
+                if(container1[i] != container2[i]) {
+                    return false;
+                }
+            }
+            return true;
+        };
+        
+        
+        return is_equal_two_container(this->test_childs, test3.test_childs);
     }
 };
 
@@ -74,23 +81,20 @@ int main()
     std::cout << "major: " <<  major << "\n";
     std::cout << "minor: " <<  minor << "\n";
     
-    Test3 test{"test", ""};
-    test.age.set(24);
-    test.map1.insert_or_assign("speed", 40);
-    test.map1.insert_or_assign("pressure", 70);
-    auto test_map = Test("test_map", "empty");
-    test.map2.insert_or_assign("just key", test_map);
+    Test test{"test", "Simple Test class with scalar and basic sequnece"};
+    test.age.set(77);
+    test.childs.push_back("string one");
+    test.childs.push_back("string two");
     
-    auto test_child = Test2("new_test_child","desc test_child");
-    test_child.age.set(48);
-    test_child.test1.age.set(42);
-    test_child.test1.childs.push_back("new string");
-    test_child.test1.childs.push_back("new string 2");
-    test.test_childs.push_back(test_child);
-    test_map.childs.push_back("new string");
+    Test2 test2{"test2", "Complex Test2 class with complex scalar and sequence"};
+    test2.test1.age.set(42);
+    test2.test_childs.push_back(test);
+    Test3 test3 {"test3", "Super hard complex Test3 class with all stuff" };
+    test3.map1.insert_or_assign("ESC_KEY", 77);
+    test3.map2.insert_or_assign("node_test", test);
     
     std::string serdata;
-    test.serialize([&serdata](const std::string &sd) {
+    test3.serialize([&serdata](const std::string &sd) {
         serdata = sd;
     });
     
@@ -103,16 +107,11 @@ int main()
       return -1;
     }
     
-    ser_data.map1.insert_or_assign("speed", 50);
-    ser_data.map1.insert_or_assign("pressure", 50);
-    test_map.age.set(42);
-    ser_data.map2.insert_or_assign("just key", test_map);
-    test_map.childs.push_back("new string");
     ser_data.serialize([](const std::string &sd) {
         std::cout << "\n" << sd << "\n";
     });
-    
-    if(test == ser_data) {
+
+    if(test3 == ser_data) {
         DEBUG("Test3 ser/deser is worked perfectly");
         return 0;
     }

@@ -25,11 +25,10 @@ struct holder<ObjectType::scalar, O> : base_holder<O> {
     void setup_scalar_holder() {
         if (holder_object.parent) {
             holder_object.parent->childs.insert(SerializeNodePtr(&holder_object, StackDeleter<SerializeNode>{}));
-
-            holder_object.parent->node[holder_object.name] =
-                holder_object.value;
-            holder_object.parent->node[holder_object.name].SetTag(
-                holder_object.type_name);
+            
+            for ( YAML::const_iterator element = holder_object.node.begin(); element != holder_object.node.end(); ++element) {
+                holder_object.parent->node[element->first] = element->second;
+            }
 
             if constexpr (is_base_of_holder<O>) {
                 holder_object.deserialize = [&](YAML::Node newroot) {
@@ -60,9 +59,8 @@ struct holder<ObjectType::scalar, O> : base_holder<O> {
     void set(const O& value) {
         DEBUG("set new value \n");
         holder_object.value = value;
-        holder_object.parent->node[holder_object.name] = holder_object.value;
-        holder_object.parent->node[holder_object.name].SetTag(
-            holder_object.type_name);
+        holder_object.node[holder_object.name] = holder_object.value;
+        holder_object.node[holder_object.name].SetTag(holder_object.type_name);
     }
 
     O get() const { return holder_object.value; }

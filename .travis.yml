@@ -12,7 +12,11 @@ language: cpp
 os:
     - linux
     - osx
-
+packages:
+  - clang-11
+  - libc++-11-dev
+  - libc++abi-11-dev
+  
 compiler:
     - gcc
     - clang

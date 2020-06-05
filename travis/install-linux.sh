@@ -4,6 +4,7 @@ set -e
 # Uninstall the default version provided by Ubuntu's package manager
 sudo apt remove --purge --auto-remove cmake
 
+sudo apt upgrade -y clang gcc g++
 
 CMAKE_VERSION_DIR=v3.16
 CMAKE_VERSION=3.16.1

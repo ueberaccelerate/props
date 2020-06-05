@@ -5,14 +5,15 @@ set -e
 sudo apt remove --purge --auto-remove cmake
 
 
-version=3.16
-build=5
-mkdir ~/temp
-cd ~/temp
-wget https://cmake.org/files/v$version/cmake-$version.$build.tar.gz
-tar -xzvf cmake-$version.$build.tar.gz
-cd cmake-$version.$build/
+CMAKE_VERSION_DIR=3.16
+CMAKE_VERSION=3.16.1
+CMAKE_OS=Linux-x86_64
+CMAKE_TAR=cmake-$CMAKE_VERSION-$CMAKE_OS.tar.gz
+CMAKE_URL=http://www.cmake.org/files/$CMAKE_VERSION_DIR/$CMAKE_TAR
+CMAKE_DIR=$(pwd)/cmake-$CMAKE_VERSION
 
-./bootstrap
-make -j$(nproc)
-sudo make install
+wget --quiet $CMAKE_URL
+mkdir -p $CMAKE_DIR
+tar --strip-components=1 -xzf $CMAKE_TAR -C $CMAKE_DIR
+export PATH=$CMAKE_DIR/bin:$PATH
+

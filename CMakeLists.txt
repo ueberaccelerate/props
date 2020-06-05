@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.14)
 project (propertysdk)
 
 option( BUILD_SHARED_LIBS "The shared library is made" OFF )
@@ -27,3 +27,5 @@ target_link_libraries( propertysdk PUBLIC propertysdk-cppfeatrues PRIVATE proper
 # examples
 add_executable( propertysdk-example main.cpp)
 target_link_libraries( propertysdk-example PRIVATE propertysdk )
+
+

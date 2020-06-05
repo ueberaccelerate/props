@@ -25,9 +25,9 @@ matrix:
         - os:  osx
           env: TARGET_CPU=x86 BUILD_CONFIGURATION=Release
 
-#install:
+install:
     # скрипт настройки среды и установки зависимостей:
-#    - source travis/install-$TRAVIS_OS_NAME.sh
+    - source travis/install-$TRAVIS_OS_NAME.sh
 
 script:
     # скрипт сборки и тестирования проекта:

@@ -5,14 +5,14 @@ branches:
   only:
   - master
 
-dist:     trusty    
+dist:     bionic    
 sudo:     required  
 
 language: cpp
 os:
     - linux
     - osx
-
+  
 compiler:
     - gcc
     - clang
@@ -24,7 +24,6 @@ matrix:
           env: TARGET_CPU=x86 BUILD_CONFIGURATION=Debug
         - os:  osx
           env: TARGET_CPU=x86 BUILD_CONFIGURATION=Release
-
 install:
     # скрипт настройки среды и установки зависимостей:
     - source travis/install-$TRAVIS_OS_NAME.sh

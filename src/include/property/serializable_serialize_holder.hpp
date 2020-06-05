@@ -24,20 +24,24 @@ struct holder<ObjectType::serialize, Serializable<O>> {
     value_type holder_object;
    public:
     holder()
-        : holder{"default_name", "default_desc", "default_type", nullptr} {}
+        : holder{"default_name", "default_desc", "!serialize!", nullptr} {}
     holder(const char *name, const char *desc, const char *type_name,
            SerializeNode *parent)
-        : holder_object{name, desc, type_name, ObjectType::serialize, parent} {
-        DEBUG("created holder object: %s\n", name);
-        if (parent) {
-            holder_object.parent->childs.insert(SerializeNodePtr(&holder_object, StackDeleter<SerializeNode>{}));
+        : holder_object{name, desc, "!serialize!", ObjectType::serialize, parent} {
+            
 
-            parent->node[name] = holder_object.node;
-            parent->node[name].SetTag(type_name);
-        } else {
-            holder_object.node[name] = "version: 1.0";
-            holder_object.node[name].SetTag(type_name);
+            
+        if (parent) {
+            DEBUG("created holder object: %s\n", name);
+            holder_object.parent->childs.insert(SerializeNodePtr(&holder_object, StackDeleter<SerializeNode>{}));
+            holder_object.node.reset();
+            parent->node[holder_object.name] = holder_object.node;
+            parent->node[holder_object.name].SetTag(type_name);
+            
+            parent->node[holder_object.name + "_doc"] = holder_object.desc;
+            parent->node[holder_object.name + "_doc"].SetTag("doc");
         }
+            
 
         holder_object.deserialize = [&](YAML::Node newroot) {
             // serialize object is not main in the scope
@@ -57,9 +61,6 @@ struct holder<ObjectType::serialize, Serializable<O>> {
    public:
     void setParent(SerializeNode *parent) {
         parent->childs.insert(SerializeNodePtr(&holder_object, StackDeleter<SerializeNode>{}));
-        //          parent->node[holder_object.name] = holder_object.node;
-        //          parent->node[holder_object.name].SetTag(holder_object.type_name);
-        //          holder_object.node[holder_object.name] = "";
     }
 
     void serialize(PROPERTY_UNUSED ResultFunction completed) {
@@ -81,7 +82,7 @@ struct holder<ObjectType::serialize, Serializable<O>> {
     void deserialize(PROPERTY_UNUSED YAML::Node root) {
         DEBUG("Validation serdata...\n");
         YAML::Node &holder_node = holder_object.node;
-
+        
         if (!root.size()) throw empty_serialize_error();
         if (root.size() != holder_node.size()) throw size_serialize_error();
 
@@ -94,7 +95,9 @@ struct holder<ObjectType::serialize, Serializable<O>> {
         for (YAML::iterator ri = std::next(root.begin()),
                             hi = std::next(holder_node.begin());
              ri != root.end(); ++ri, ++hi) {
-            if (hi->first.as<std::string>() != ri->first.as<std::string>()) {
+            const auto &root_string_key = ri->second.Tag();
+            const auto &holder_string_key = hi->second.Tag();
+            if (root_string_key != holder_string_key) {
                 throw parser_serialize_error("hi->first != ri->first");
             }
         }

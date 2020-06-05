@@ -22,11 +22,15 @@ struct holder<ObjectType::sequence, std::vector<O>> {
     void setup_sequence_holder() {
         if (holder_object.parent) {
             holder_object.parent->childs.insert(SerializeNodePtr(&holder_object, StackDeleter<SerializeNode>{}));
-
-            holder_object.parent->node[holder_object.name].SetTag(
-                holder_object.type_name);
+            
+            for ( YAML::const_iterator element = holder_object.node.begin(); element != holder_object.node.end(); ++element) {
+                holder_object.parent->node[element->first] = element->second;
+            }
+            
             if constexpr (is_base_of_holder<O>) {
-
+                holder_object.parent->node[holder_object.name] = YAML::Load("[]");
+                holder_object.parent->node[holder_object.name].SetTag(holder_object.type_name);
+                
                 holder_object.deserialize = [&](YAML::Node newroot) {
                     O holderValue{};
                     YAML::Node vectorofholder = newroot[holder_object.name];
@@ -39,12 +43,12 @@ struct holder<ObjectType::sequence, std::vector<O>> {
             } else {
                 holder_object.parent->node[holder_object.name] =
                     holder_object.value;
+                holder_object.parent->node[holder_object.name].SetTag(holder_object.type_name);
                 
                 holder_object.deserialize = [&](YAML::Node newroot) {
                     YAML::Node newvalue = newroot[holder_object.name];
                     newvalue.SetTag(holder_object.type_name);
                     holder_object.value = newvalue.as<std::vector<O>>();
-                    newvalue = holder_object.value;
                 };
             }
         }
@@ -67,18 +71,24 @@ struct holder<ObjectType::sequence, std::vector<O>> {
 
     void push_back(const O& value) {
         if constexpr (is_base_of_holder<O>) {
-//            auto& constless = const_cast<O&>(value);
             holder_object.value.push_back(value);
-//            constless.setParent(&holder_object);
+            
+            
             holder_object.parent->node[holder_object.name].push_back(
                 value.holder_object.node);
+            holder_object.parent->node[holder_object.name].SetTag(
+                holder_object.type_name);
+            
         } else {
             DEBUG("push new value \n");
             updateIfNeeded();
             holder_object.value.push_back(value);
+            
+            
             holder_object.parent->node[holder_object.name].push_back(value);
             holder_object.parent->node[holder_object.name].SetTag(
                 holder_object.type_name);
+            
         }
     }
 

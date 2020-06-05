@@ -17,6 +17,11 @@ SerializeNode::~SerializeNode() = default;
 SerializeNode::SerializeNode(const char *name, const char *desc, const char *type_name, const ObjectType object_type, SerializeNode *parent) : name{name}, type_name{type_name}, desc{desc}, object_type{object_type}, parent{SerializeNodePtr(parent,StackDeleter<SerializeNode>{})}
 {
     DEBUG("created node: %s %s %s \n", this->name.data(), this->desc.data(), this->type_name.data());
+    node[this->name] = "";
+    node[this->name + "_doc"] = desc;
+    
+    node[this->name].SetTag(type_name);
+    node[this->name + "_doc"].SetTag("doc");
 }
 
 void serialize_as_sequence(YAML::Node node, std::stack<YAML::Node>& stack_serialize, SerializeNodePtr parent) {

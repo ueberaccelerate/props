@@ -5,7 +5,7 @@ set -e
 sudo apt remove --purge --auto-remove cmake
 
 
-CMAKE_VERSION_DIR=3.16
+CMAKE_VERSION_DIR=v3.16
 CMAKE_VERSION=3.16.1
 CMAKE_OS=Linux-x86_64
 CMAKE_TAR=cmake-$CMAKE_VERSION-$CMAKE_OS.tar.gz

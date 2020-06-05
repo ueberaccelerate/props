@@ -1,7 +1,14 @@
-language: c++
+language: cpp
+compiler:
+  - clang
+  - gcc
 git:
   depth: 3
   submodules: false
 branches:
   only:
   - master
+    addons:
+apt:
+  packages:
+    - cmake

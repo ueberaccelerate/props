@@ -12,10 +12,6 @@ language: cpp
 os:
     - linux
     - osx
-packages:
-  - clang-11
-  - libc++-11-dev
-  - libc++abi-11-dev
   
 compiler:
     - gcc
@@ -28,7 +24,8 @@ matrix:
           env: TARGET_CPU=x86 BUILD_CONFIGURATION=Debug
         - os:  osx
           env: TARGET_CPU=x86 BUILD_CONFIGURATION=Release
-
+before_install:
+  - sudo apt -y install clang libc++-dev libclang-dev
 install:
     # скрипт настройки среды и установки зависимостей:
     - source travis/install-$TRAVIS_OS_NAME.sh

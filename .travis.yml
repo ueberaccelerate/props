@@ -30,13 +30,5 @@ before_install:
     fi
 
 script:
-  - cmake --version
-  - mkdir build
-  - cd build
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then   
-      - cmake .. -GXcode
-    else
-      - cmake ..
-    fi
-  - cmake --build .
+  - sh .travis-build.sh
    

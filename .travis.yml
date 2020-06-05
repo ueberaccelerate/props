@@ -5,30 +5,34 @@ branches:
   only:
   - master
 
-os:
-  - linux
-  - osx
+dist:     trusty    
+sudo:     required  
+
 language: cpp
+os:
+    - linux
+    - osx
+
 compiler:
-  - clang
-  - gcc
-dist: trusty
+    - gcc
+    - clang
+matrix:
+    exclude:
+        - os:       osx
+          compiler: gcc
+        - os:  osx
+          env: TARGET_CPU=x86 BUILD_CONFIGURATION=Debug
+        - os:  osx
+          env: TARGET_CPU=x86 BUILD_CONFIGURATION=Release
 
-addons:
-  apt:
-    sources:
-      - ubuntu-toolchain-r-test
-      - sourceline: "ppa:beineri/opt-qt-5.10.1-trusty"
-    packages:
-      - gcc-7
-      - g++-7
-
-before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      brew update ;
-      brew install cmake ;
-    fi
+#install:
+    # скрипт настройки среды и установки зависимостей:
+#    - source travis/install-$TRAVIS_OS_NAME.sh
 
 script:
-  - sh .travis-build.sh
-   
+    # скрипт сборки и тестирования проекта:
+    - mkdir build
+    - cd build
+    - cmake .. -DCMAKE_BUILD_TYPE=$BUILD_CONFIGURATION -DTARGET_CPU=$TARGET_CPU
+    - cmake --build .
+#    - ctest --output-on-failure

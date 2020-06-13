@@ -24,10 +24,10 @@ struct holder<ObjectType::serialize, Serializable<O>> {
     value_type holder_object;
    public:
     holder()
-        : holder{"default_name", "default_desc", "!serialize!", nullptr} {}
+        : holder{"default_name", "default_desc", "serializable", nullptr} {}
     holder(const char *name, const char *desc, const char *type_name,
            SerializeNode *parent)
-        : holder_object{name, desc, "!serialize!", ObjectType::serialize, parent} {
+        : holder_object{name, desc, "serializable", ObjectType::serialize, parent} {
             
 
             

@@ -1,30 +1,56 @@
-cmake_minimum_required(VERSION 3.14)
-project (propertysdk)
+cmake_minimum_required(VERSION 3.10)
+set(PROPERTYSDK_NAME propertysdk)
+project(${PROPERTYSDK_NAME})
 
-option( BUILD_SHARED_LIBS "The shared library is made" OFF )
-option( propertysdk_EXAMPLES "Enable examples" OFF )
+set(PROPERTYSDK_SOURCE_DIR ${PROJECT_SOURCE_DIR})
+set(PROPERTYSDK_BINARY_DIR ${PROJECT_BINARY_DIR})
+set(PROPERTYSDK_OUTPUT_DIR
+    "${PROPERTYSDK_BINARY_DIR}/${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
 
-include ( cmake/warnings.cmake )
-include ( cmake/dependency.cmake )
+option(BUILD_SHARED_LIBS "The shared library" ON)
+option(PROPERTYSDK_EXAMPLE "Enable examples" ON)
+option(PROPERTYSDK_TEST "Build feature_traker test" ON)
 
-add_library( propertysdk-cppfeatrues INTERFACE )
-add_library( propertysdk-cppwarnings INTERFACE )
+option(PROPERTYSDK_AUTO_CLANG_TIDY "Enable autotidy with clang-tidy" ON)
+option(PROPERTYSDK_AUTO_CLANG_FORMAT "Enable autoformat with clang-format" ON)
 
-target_compile_features( propertysdk-cppfeatrues INTERFACE cxx_std_17 )
-
-set_project_warinigs( propertysdk-cppwarnings )
-
-add_library( propertysdk )
-
-set_dependency( propertysdk PUBLIC )
-
-add_subdirectory( src )
-
-target_include_directories( propertysdk PUBLIC src/include )
-target_link_libraries( propertysdk PUBLIC propertysdk-cppfeatrues PRIVATE propertysdk-cppwarnings )
-
-# examples
-if (propertysdk_EXAMPLES )
-  add_executable( propertysdk-example main.cpp)
-  target_link_libraries( propertysdk-example PRIVATE propertysdk )
+if(MSVC)
+  if(BUILD_SHARED_LIBS)
+    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
+  endif()
+  if(UNIX)
+    message(STATUS "Use position independent code")
+    set_property(GLOBAL PROPERTY POSITION_INDEPENDENT_CODE ON)
+  endif()
 endif()
+
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE
+      "Release"
+      CACHE STRING "Build configuration 'Release' or 'Debug'." FORCE)
+endif()
+
+# cmake modules
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules)
+
+include(Utils)
+include(clang-tidy)
+include(depends)
+
+add_subdirectory(src)
+
+# example
+if(PROPERTYSDK_EXAMPLE)
+  add_subdirectory(example)
+endif()
+
+log(TEXT
+    "Target name                                    ${PROPERTYSDK_NAME}"
+    "Target config                              --> ${CMAKE_BUILD_TYPE}"
+    "Build shared library                       --> ${BUILD_SHARED_LIBS}"
+    "Build feature_traker examples                  ${PROPERTYSDK_EXAMPLE}"
+    "Build feature_traker test                      ${PROPERTYSDK_TEST}"
+    "Auto clang-tidy                                ${PROPERTYSDK_AUTO_CLANG_TIDY}"
+    "Auto clang-format                              ${PROPERTYSDK_AUTO_CLANG_FORMAT}"
+    SUMMARIZE)

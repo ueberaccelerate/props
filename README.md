@@ -1,5 +1,5 @@
 # Property sdk
-[![Build Status](https://travis-ci.com/ueberaccelerate/libprop.svg?branch=master)](https://travis-ci.com/ueberaccelerate/libprop)
+[![Build Status](https://travis-ci.com/ueberaccelerate/props.svg?branch=master)](https://travis-ci.com/ueberaccelerate/props)
 
 Propertysdk is a C++ project that allow you make serialize object.
 

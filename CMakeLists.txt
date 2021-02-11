@@ -38,9 +38,6 @@ if(NOT CMAKE_BUILD_TYPE)
       "Release"
       CACHE STRING "Build configuration 'Release' or 'Debug'." FORCE)
 endif()
-if(MSVC)
-  set(CMAKE_DEBUG_POSTFIX d)
-endif()
 
 # cmake modules
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)

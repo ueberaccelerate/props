@@ -130,6 +130,7 @@ function(add_target)
       "${FT_PUBLIC_HEADER}"
       "* Private headers"
       "${FT_PRIVATE_HEADER}"
+      "* Sources"
       "${FT_SOURCES}"
       SUMMARIZE)
 endfunction()

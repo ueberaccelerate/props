@@ -1,76 +1,79 @@
-# include CPM Package Management
+get_property(DEPENDS_INITIALIZED GLOBAL "" PROPERTY DEPENDS_INITIALIZED SET)
+if (DEPENDS_INITIALIZED)
+  return()
+endif()
+
+set_property(GLOBAL PROPERTY DEPENDS_INITIALIZED true)
+
 include(get_cpm)
+include(CMakeParseArguments)
 
-# find_package https://cmake.org/cmake/help/v3.15/command/find_package.html?highlight=find_package
-# ==============================================================================
-# * add Find<PackageName>.cmake to cmake/modules folder
-# * see https://github.com/rpavlik/cmake-modules -
-# ==============================================================================
-
-# include Conan Package Management
-# ==============================================================================
-# * install conan executable with 'python -m pip install conan'
-# * setup CONAN_BINARY_IMPORT_DIR to import binaries to destination folder
-# * set(CONAN_BINARY_IMPORT_DIR /path_to_output_folder)
-# * In Code:
-# * run_conan()
-# ==============================================================================
-# include(Conan)
-
-# CPM
-# ==============================================================================
-# * add_<PackageName>_package ( TARGET TARGET_ACCESS )
-# * Example
-# * function (add_easy_prolifer_package target_package target_access_package)
-# * ...
-# * endfunction()
-# * In Code:
-# * add_easy_prolifer_package ( superfeature PRIVATE)
-# ==============================================================================
-
-# Easy Profiler Package
-function(add_easy_profiler_package target target_access)
-  # see https://github.com/TheLartians/CPM.cmake#usage CPMFindPackage will try to find a local
-  # dependency via CMake's find_package and fallback to CPMAddPackage
-  cpmfindpackage(
+function ( add_git_dependency )
+  set(oneValueArgs
+    TARGET
+    TARGET_ACCESS
+    OUTPUT_DIRECTORY
     NAME
-    easy_profiler
-    GITHUB_REPOSITORY
-    yse/easy_profiler
-    # Version 2.1.0
     GIT_TAG
-    046d9bd
-    OPTIONS
-    "EASY_PROFILER_NO_GUI ON"
-    "EASY_PROFILER_NO_SAMPLES ON")
-
-  target_link_libraries(${target} ${target_access} easy_profiler)
-  set_target_properties(
-    easy_profiler
-    PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}"
-               LIBRARY_OUTPUT_DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}"
-               RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
-
-endfunction()
-
-# Google Test
-function(add_google_test target target_access)
-  cpmfindpackage(
-    NAME
-    googletest
     GITHUB_REPOSITORY
-    google/googletest
-    # Version v1.10.0
-    GIT_TAG
-    703bd9c
-    OPTIONS
-    "BUILD_GMOCK OFF"
-    "gtest_force_shared_crt on")
-  set_target_properties(
-    gtest gtest_main
-    PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}"
-               LIBRARY_OUTPUT_DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}"
-               RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+    GITLAB_REPOSITORY
+    GIT_REPOSITORY
+    GIT_SHALLOW
+  )
 
-  target_link_libraries(${target} ${target_access} gtest gtest_main)
+  set(multiValueArgs
+    OPTIONS
+    IMPORT_LIBS
+  )
+  cmake_parse_arguments(DEPENDS "" "${oneValueArgs}" "${multiValueArgs}" "${ARGN}")
+  
+  if(NOT DEPENDS_TARGET)
+    message(FATAL_ERROR "specify target name.")
+  endif()
+  if(NOT DEPENDS_OUTPUT_DIRECTORY)
+    set(DEPENDS_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+  endif()
+  
+  if(DEPENDS_GITHUB_REPOSITORY AND NOT DEPENDS_GIT_SELECTED)
+    set(GIT_SELECTED ${DEPENDS_GITHUB_REPOSITORY})
+    set(GIT_SELECTED_REPOSITORY GITHUB_REPOSITORY)
+    set(GIT_SELECTED_FLAG TRUE)
+  endif()
+  if(DEPENDS_GITLAB_REPOSITORY AND NOT GIT_SELECTED)
+    set(GIT_SELECTED ${DEPENDS_GITLAB_REPOSITORY})
+    set(GIT_SELECTED_REPOSITORY GITLAB_REPOSITORY)
+    set(GIT_SELECTED_FLAG TRUE)
+  endif() 
+  if(DEPENDS_GIT_REPOSITORY AND NOT GIT_SELECTED)
+    set(GIT_SELECTED ${DEPENDS_GIT_REPOSITORY})
+    set(GIT_SELECTED_REPOSITORY GIT_REPOSITORY)
+    set(GIT_SELECTED_FLAG TRUE)
+  endif() 
+  
+  if(NOT GIT_SELECTED_FLAG)
+    message(FATAL_ERROR "Use one of ( GITHUB_REPOSITORY | GITLAB_REPOSITORY | GIT_REPOSITORY )")
+  endif()
+  if(NOT DEPENDS_TARGET_TYPE)
+    set(DEPENDS_TARGET_TYPE PUBLIC)
+  endif()
+  
+  cpmfindpackage (
+    NAME  
+      ${DEPENDS_NAME}
+    ${GIT_SELECTED_REPOSITORY}
+      ${GIT_SELECTED}
+    GIT_TAG
+      ${DEPENDS_GIT_TAG}
+    GIT_SHALLOW
+      ${DEPENDS_GIT_SHALLOW}
+    OPTIONS
+      ${DEPENDS_OPTIONS}
+  )
+  
+  set_target_properties(easy_profiler PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${DEPENDS_OUTPUT_DIRECTORY}"
+                                                 RUNTIME_OUTPUT_DIRECTORY "${DEPENDS_OUTPUT_DIRECTORY}")
+                                                 
+  target_link_libraries(${DEPENDS_TARGET} ${DEPENDS_TARGET_ACCESS} ${DEPENDS_IMPORT_LIBS})
 endfunction()
+  
+  

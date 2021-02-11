@@ -1,4 +1,9 @@
-include_guard(GLOBAL)
+get_property(UTILS_INITIALIZED GLOBAL "" PROPERTY UTILS_INITIALIZED SET)
+if (UTILS_INITIALIZED)
+  return()
+endif()
+
+set_property(GLOBAL PROPERTY UTILS_INITIALIZED true)
 
 include(GNUInstallDirs)
 

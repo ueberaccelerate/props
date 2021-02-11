@@ -1,11 +1,20 @@
 cmake_minimum_required(VERSION 3.10)
+
 set(PROPERTYSDK_NAME propertysdk)
-project(${PROPERTYSDK_NAME})
+
+set(PROPERTYSDK_MAJOR 1)
+set(PROPERTYSDK_MINOR 0)
+set(PROPERTYSDK_VERSION ${PROPERTYSDK_MAJOR}.${PROPERTYSDK_MINOR})
+project(${PROPERTYSDK_NAME} VERSION ${PROPERTYSDK_VERSION})
+
+
 
 set(PROPERTYSDK_SOURCE_DIR ${PROJECT_SOURCE_DIR})
 set(PROPERTYSDK_BINARY_DIR ${PROJECT_BINARY_DIR})
 set(PROPERTYSDK_OUTPUT_DIR
     "${PROPERTYSDK_BINARY_DIR}/${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
+
+configure_file(${PROPERTYSDK_SOURCE_DIR}/version.hpp.in ${PROPERTYSDK_SOURCE_DIR}/include/${PROPERTYSDK_NAME}/version.hpp)
 
 option(BUILD_SHARED_LIBS "The shared library" ON)
 option(PROPERTYSDK_EXAMPLE "Enable examples" ON)
@@ -28,6 +37,9 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE
       "Release"
       CACHE STRING "Build configuration 'Release' or 'Debug'." FORCE)
+endif()
+if(MSVC)
+  set(CMAKE_DEBUG_POSTFIX d)
 endif()
 
 # cmake modules

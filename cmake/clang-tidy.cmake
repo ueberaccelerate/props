@@ -21,7 +21,7 @@ else()
   endif()
 
   set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
+  option (CLANG_TIDY_AUTOFIX "Auto fix errors" ON)
   function(clang_tidy)
     set(oneValueArgs TARGET DIRECTORY)
     cmake_parse_arguments(CT "" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
@@ -31,6 +31,12 @@ else()
     # get target include directories
     get_target_property(LINK_TARGETS ${CT_TARGET} LINK_LIBRARIES)
     get_target_property(CT_TARGET_INCLUDE_DIRECTORIES ${CT_TARGET} INCLUDE_DIRECTORIES)
+    
+    list(LENGTH CT_TARGET_INCLUDE_DIRECTORIES CT_TARGET_INCLUDE_DIRECTORIES_LENGTH)
+    # 
+    if( NOT CT_TARGET_INCLUDE_DIRECTORIES_LENGTH EQUAL 1)
+      list(POP_BACK CT_TARGET_INCLUDE_DIRECTORIES)
+    endif()
 
     foreach(target ${LINK_TARGETS})
       get_target_property(interface_dirs ${target} INTERFACE_INCLUDE_DIRECTORIES)
@@ -43,20 +49,7 @@ else()
         list(APPEND CT_TARGET_INCLUDE_DIRECTORIES ${dirs})
       endif()
     endforeach(target)
-
-    # include (CMakePrintHelpers) cmake_print_properties(TARGETS propertysdk yaml-cpp PROPERTIES
-    # INCLUDE_DIRECTORIES INTERFACE_INCLUDE_DIRECTORIES LINK_DIRECTORIES PARENT_DIRECTORY
-    # LIBRARY_OUTPUT_DIRECTORY INTERFACE_LINK_LIBRARIES)
-
-    log(TEXT
-        "Target           - ${CT_TARGET}"
-        "Directory        - ${CT_DIRECTORY}"
-        "* Target Directory"
-        "${CT_TARGET_INCLUDE_DIRECTORIES}"
-        "* Target Sources"
-        "${CT_${CT_TARGET}_FILES}"
-        SUMMARIZE)
-
+    
     foreach(src ${CT_TARGET_INCLUDE_DIRECTORIES})
       list(APPEND CLANG_TIDY_PUBLIC_HEADER_PREFIX -I ${src})
     endforeach(src)
@@ -66,12 +59,18 @@ else()
     if(EXISTS ${PROJECT_BINARY_DIR}/compile_commands.json)
       set(CLANG_TIDY_COMPILE_COMMANDS -p ${PROJECT_SOURCE_DIR}/compile_commands.json)
     endif()
-
+    
+    list(APPEND CLANG_TIDY_FLAGS ${CLANG_TIDY_COMPILE_COMMANDS})
+    if(CLANG_TIDY_AUTOFIX)
+      list(APPEND CLANG_TIDY_FLAGS -fix)
+    endif()
+    
     add_custom_target(
       tidy_${CT_TARGET}
-      COMMAND ${CLANG_TIDY} ${CLANG_TIDY_COMPILE_COMMANDS} ${CT_${CT_TARGET}_FILES}
+      COMMAND ${CLANG_TIDY} ${CT_${CT_TARGET}_FILES} ${CLANG_TIDY_FLAGS}
               ${CLANG_TIDY_COMPILE_FLAGS}
-      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+      COMMAND_EXPAND_LISTS)
   endfunction()
 endif()
 

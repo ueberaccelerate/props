@@ -1,5 +1,5 @@
 ---
-Checks:          'cppcoreguidelines-*, hicpp-*, clang-analyzer-*, -hicpp-vararg, -cppcoreguidelines-pro-type-vararg'
-WarningsAsErrors: ''
+Checks:          'cppcoreguidelines-*, hicpp-*, clang-analyzer-*, -hicpp-signed-bitwise, -hicpp-vararg, -cppcoreguidelines-pro-type-vararg'
+WarningsAsErrors: '*'
 HeaderFilterRegex: ''
-FormatStyle:     none
+FormatStyle:     file

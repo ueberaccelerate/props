@@ -1,7 +1,7 @@
 #ifndef PROPERTY_SERIALIZE_NODE_HPP
 #define PROPERTY_SERIALIZE_NODE_HPP
 
-#include <yaml-cpp/yaml.h>
+#include <yaml-cpp/yaml.h> // NOLINT
 
 #include <functional>
 #include <queue>
@@ -76,7 +76,7 @@ namespace property
     VoidFunction serialize;
     VoidFunction deserialize;
 
-    SerializeNode();
+    SerializeNode() = default;
     SerializeNode(const char *name, const char *desc, const char *type_name, const ObjectType object_type, SerializeNode *parent);
     ~SerializeNode();
 
@@ -90,7 +90,7 @@ namespace property
       return 0;
     }
   };
-  void serialize(std::string_view serdata, std::function<void(SerializeNodePtr)>);
+  void serialize(std::string_view serdata, const std::function<void(SerializeNodePtr)> &);
 
 } // namespace property
 

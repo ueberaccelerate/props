@@ -7,12 +7,18 @@
 
 #include <propertysdk/property.hpp>
 
+namespace
+{
+  constexpr size_t c_bitrwise_shift = 16U;
+  constexpr size_t c_bitrwise_check = 0xFF;
+} // namespace
+
 namespace property
 {
 
-  int property_version() { return ((PROPERTY_MAJOR << 16) | PROPERTY_MINOR); }
+  auto property_version() PROPERTY_NOEXCEPT -> size_t { return ((PROPERTYSDK_MAJOR << c_bitrwise_shift) | PROPERTYSDK_MINOR); }
 
-  int property_major() { return (property_version() >> 16); }
+  auto property_major() PROPERTY_NOEXCEPT -> size_t { return (property_version() >> c_bitrwise_shift); }
 
-  int property_minor() { return property_version() & 0xFF; }
+  auto property_minor() PROPERTY_NOEXCEPT -> size_t { return property_version() & c_bitrwise_check; }
 } // namespace property

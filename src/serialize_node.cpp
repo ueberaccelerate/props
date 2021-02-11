@@ -1,16 +1,15 @@
 #include <propertysdk/serialize_node.hpp>
 
-#include <yaml-cpp/yaml.h>
+#include <yaml-cpp/yaml.h> // NOLINT
 
 #include <stack>
 
 namespace property
 {
 
-  SerializeNode::SerializeNode()  = default;
   SerializeNode::~SerializeNode() = default;
 
-  SerializeNode::SerializeNode(const char *name, const char *desc, const char *type_name, const ObjectType object_type, SerializeNode *parent)
+  SerializeNode::SerializeNode(const char* name, const char* desc, const char* type_name, const ObjectType object_type, SerializeNode* parent)
   : name{name}, type_name{type_name}, desc{desc}, object_type{object_type}, parent{SerializeNodePtr(parent, StackDeleter<SerializeNode>{})}
   {
     node[this->name]          = "";
@@ -20,7 +19,7 @@ namespace property
     node[this->name + "_doc"].SetTag("doc");
   }
 
-  void serialize_as_sequence(YAML::Node node, std::stack<YAML::Node> &stack_serialize, SerializeNodePtr parent)
+  void serialize_as_sequence(const YAML::Node& node, std::stack<YAML::Node>& stack_serialize, const SerializeNodePtr& /*parent*/)
   {
     if (node.IsScalar())
     {
@@ -37,7 +36,7 @@ namespace property
     }
   }
 
-  void serialize_as_map(YAML::Node node, std::stack<YAML::Node> &stack_serialize, SerializeNodePtr parent)
+  void serialize_as_map(const YAML::Node& node, std::stack<YAML::Node>& stack_serialize, const SerializeNodePtr& /*parent*/)
   {
     if (node.IsScalar())
     {
@@ -53,17 +52,19 @@ namespace property
     }
   }
 
-  void serialize(std::string_view serdata, std::function<void(SerializeNodePtr root)> processed)
+  void serialize(std::string_view serdata, const std::function<void(SerializeNodePtr root)>& processed)
   {
     if (serdata.empty())
+    {
       throw empty_serialize_error();
+    }
     YAML::Node             root = YAML::Load(serdata.data());
     std::stack<YAML::Node> stack_serialize;
 
     stack_serialize.push(root);
     auto parent = std::make_shared<SerializeNode>();
 
-    auto stack_parent = parent;
+    const auto& stack_parent = parent;
 
     while (!stack_serialize.empty())
     {

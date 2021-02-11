@@ -10,11 +10,12 @@
 
 #include "property_config.hpp"
 
+#include <cstddef>
 namespace property
 {
-  PROPERTY_NODISCARD int property_version();
-  PROPERTY_NODISCARD int property_major();
-  PROPERTY_NODISCARD int property_minor();
+  PROPERTY_NODISCARD auto property_version() PROPERTY_NOEXCEPT -> size_t;
+  PROPERTY_NODISCARD auto property_major() PROPERTY_NOEXCEPT -> size_t;
+  PROPERTY_NODISCARD auto property_minor() PROPERTY_NOEXCEPT -> size_t;
 } // namespace property
 
 #include "serializable_map_holder.hpp"

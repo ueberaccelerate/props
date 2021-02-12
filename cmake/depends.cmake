@@ -69,10 +69,15 @@ function ( add_git_dependency )
     OPTIONS
       ${DEPENDS_OPTIONS}
   )
-  
-  set_target_properties(easy_profiler PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${DEPENDS_OUTPUT_DIRECTORY}"
+  foreach( target ${DEPENDS_IMPORT_LIBS})
+    get_target_property(target_type_${target} ${target} TYPE)
+
+    if(TARGET ${target} AND NOT ${target_type_${target}} STREQUAL "INTERFACE_LIBRARY")
+      set_target_properties(${target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${DEPENDS_OUTPUT_DIRECTORY}"
                                                  RUNTIME_OUTPUT_DIRECTORY "${DEPENDS_OUTPUT_DIRECTORY}")
-                                                 
+    endif()
+  endforeach()
+                                          
   target_link_libraries(${DEPENDS_TARGET} ${DEPENDS_TARGET_ACCESS} ${DEPENDS_IMPORT_LIBS})
 endfunction()
   

@@ -20,9 +20,6 @@ option(BUILD_SHARED_LIBS "The shared library" ON)
 option(PROPERTYSDK_EXAMPLE "Enable examples" ON)
 option(PROPERTYSDK_TEST "Build feature_traker test" ON)
 
-option(PROPERTYSDK_AUTO_CLANG_TIDY "Enable autotidy with clang-tidy" ON)
-option(PROPERTYSDK_AUTO_CLANG_FORMAT "Enable autoformat with clang-format" ON)
-
 if(MSVC)
   if(BUILD_SHARED_LIBS)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)

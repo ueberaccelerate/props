@@ -32,17 +32,16 @@ add_target(
 target_compile_features(propertysdk PUBLIC cxx_std_17)
 
 if(CLANG_TIDY_FOUND)
-  clang_tidy(TARGET ${PROPERTYSDK_NAME})
-
-  if(PROPERTYSDK_AUTO_CLANG_TIDY)
-    add_dependencies(${PROPERTYSDK_NAME} tidy_${PROPERTYSDK_NAME})
-  endif()
+  clang_tidy(
+    TARGET 
+      ${PROPERTYSDK_NAME}
+    INCLUDE_DIRECTORIES
+      ${PROPERTYSDK_SOURCE_DIR}/include
+    SOURCES
+      serialize_node.cpp
+      property.cpp
+  )
 endif()
-
-if(PROPERTYSDK_AUTO_CLANG_FORMAT AND CLANG_FORMAT)
-  add_dependencies(${PROPERTYSDK_NAME} format)
-endif()
-
 
 
 # install headers

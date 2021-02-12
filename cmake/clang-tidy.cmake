@@ -1,13 +1,22 @@
+get_property(CLANG_TIDY_INITIALIZED GLOBAL "" PROPERTY CLANG_TIDY_INITIALIZED SET)
+if (CLANG_TIDY_INITIALIZED)
+  return()
+endif()
+
+set_property(GLOBAL PROPERTY CLANG_TIDY_INITIALIZED true)
+
+option (CLANG_TIDY_AUTO "Enable clang-tidy auto checking" ON)
+option (CLANG_TIDY_FIX "Auto fix errors" OFF)
+
 find_program(CLANG_TIDY clang-tidy)
 if(NOT CLANG_TIDY)
   message(STATUS "Did not find clang-tidy, target tidy is disabled.")
 
-  macro(clang_tidy directory DESC)
-
-  endmacro(clang_tidy)
-  macro(clang_tidy_recurse directory DESC)
-
-  endmacro(clang_tidy_recurse)
+  function(clang_tidy)
+    set(oneValueArgs TARGET )
+    set(multiValueArgs INCLUDE_DIRECTORIES SOURCES)
+    cmake_parse_arguments(CT "" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+  endfunction()
 else()
   message(STATUS "Found clang-tidy, use \"make tidy\" to run it.")
   set(CLANG_TIDY_FOUND
@@ -21,74 +30,65 @@ else()
   endif()
 
   set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-  option (CLANG_TIDY_AUTOFIX "Auto fix errors" ON)
   function(clang_tidy)
-    set(oneValueArgs TARGET DIRECTORY)
+    set(oneValueArgs TARGET )
+    set(multiValueArgs INCLUDE_DIRECTORIES SOURCES)
     cmake_parse_arguments(CT "" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
-    # keep all sources
-    file(GLOB_RECURSE CT_${CT_TARGET}_FILES "${CMAKE_CURRENT_SOURCE_DIR}/${CT_DIRECTORY}/*.cpp")
-
-    # get target include directories
-    get_target_property(LINK_TARGETS ${CT_TARGET} LINK_LIBRARIES)
-    get_target_property(CT_TARGET_INCLUDE_DIRECTORIES ${CT_TARGET} INCLUDE_DIRECTORIES)
     
-    list(LENGTH CT_TARGET_INCLUDE_DIRECTORIES CT_TARGET_INCLUDE_DIRECTORIES_LENGTH)
-    # 
-    if( NOT CT_TARGET_INCLUDE_DIRECTORIES_LENGTH EQUAL 1)
-      list(POP_BACK CT_TARGET_INCLUDE_DIRECTORIES)
-    endif()
-
-    foreach(target ${LINK_TARGETS})
-      get_target_property(interface_dirs ${target} INTERFACE_INCLUDE_DIRECTORIES)
-      get_target_property(dirs ${target} INCLUDE_DIRECTORIES)
-
-      if(interface_dirs)
-        list(APPEND CT_TARGET_INCLUDE_DIRECTORIES ${interface_dirs})
-      endif()
-      if(dirs)
-        list(APPEND CT_TARGET_INCLUDE_DIRECTORIES ${dirs})
-      endif()
-    endforeach(target)
-    
-    foreach(src ${CT_TARGET_INCLUDE_DIRECTORIES})
-      list(APPEND CLANG_TIDY_PUBLIC_HEADER_PREFIX -I ${src})
-    endforeach(src)
-
-    set(CLANG_TIDY_COMPILE_FLAGS -- ${CLANG_TIDY_PUBLIC_HEADER_PREFIX} -std=c++17)
-
     if(EXISTS ${PROJECT_BINARY_DIR}/compile_commands.json)
-      set(CLANG_TIDY_COMPILE_COMMANDS -p ${PROJECT_SOURCE_DIR}/compile_commands.json)
+      list(APPEND CLANG_TIDY_FLAGS -p ${PROJECT_BINARY_DIR}/compile_commands.json)
     endif()
     
-    list(APPEND CLANG_TIDY_FLAGS ${CLANG_TIDY_COMPILE_COMMANDS})
-    if(CLANG_TIDY_AUTOFIX)
+    if(CLANG_TIDY_FIX)
       list(APPEND CLANG_TIDY_FLAGS -fix)
     endif()
     
+    foreach(src ${CT_SOURCES})
+      list(APPEND CLANG_TIDY_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/${src} )
+    endforeach(src)
+    
+    # get target include directories
+    get_target_property(LINK_TARGETS ${CT_TARGET} LINK_LIBRARIES)
+
+    foreach(target ${LINK_TARGETS})
+      if( TARGET ${target} )
+        get_target_property(interface_dirs ${target} INTERFACE_INCLUDE_DIRECTORIES)
+        get_target_property(dirs ${target} INTERFACE_INCLUDE_DIRECTORIES)
+        
+        if(interface_dirs)
+          list(APPEND CT_INCLUDE_DIRECTORIES ${interface_dirs})
+        endif()
+        if(dirs)
+          list(APPEND CT_INCLUDE_DIRECTORIES ${dirs})
+        endif()
+      endif()
+    endforeach(target)
+    
+    list(REMOVE_DUPLICATES CT_INCLUDE_DIRECTORIES)
+    
+    foreach(src ${CT_INCLUDE_DIRECTORIES})
+      string(REGEX MATCH "(<INSTALL_INTERFACE)" SKIP_INTERFACE ${src})
+      if( NOT SKIP_INTERFACE)
+        # message(STATUS "${src}")
+        list(APPEND CLANG_TIDY_PUBLIC_HEADER_PREFIX -I ${src})
+      endif()
+    endforeach(src)
+    
+    # enable c++17 by default
+    set(CLANG_TIDY_COMPILE_FLAGS -- ${CLANG_TIDY_PUBLIC_HEADER_PREFIX} -std=c++17)
+    
     add_custom_target(
       tidy_${CT_TARGET}
-      COMMAND ${CLANG_TIDY} ${CT_${CT_TARGET}_FILES} ${CLANG_TIDY_FLAGS}
+      COMMAND ${CLANG_TIDY} ${CLANG_TIDY_FLAGS} ${CLANG_TIDY_SOURCES} 
               ${CLANG_TIDY_COMPILE_FLAGS}
       WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-      COMMAND_EXPAND_LISTS)
+      COMMAND_EXPAND_LISTS
+      )
+      
+    if(CLANG_TIDY_AUTO)
+      add_dependencies(${CT_TARGET} tidy_${CT_TARGET})
+    endif()
   endfunction()
-endif()
-
-find_program(CLANG_FORMAT clang-format)
-if(NOT CLANG_FORMAT)
-  message(STATUS "Did not find clang-format, target format is disabled.")
-else()
-  message(STATUS "Found clang-format, use \"make format\" to run it.")
-  if(WIN32)
-    log(TEXT "Clang Format native support. (Visual Studio)")
-    add_custom_target(format)
-  else()
-    add_custom_target(
-      format
-      COMMAND find ./ -iname "*.h" -o -iname "*.hpp" -o -iname "*.cpp" | xargs ${CLANG_FORMAT}
-              -style=file -i -verbose
-      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-  endif()
 endif()
 
 mark_as_advanced(CLANG_TIDY_FOUND)

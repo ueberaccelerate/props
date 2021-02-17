@@ -9,6 +9,7 @@ include(get_cpm)
 include(CMakeParseArguments)
 
 function ( add_git_dependency )
+  set(optionValueArgs )
   set(oneValueArgs
     TARGET
     TARGET_ACCESS
@@ -25,7 +26,7 @@ function ( add_git_dependency )
     OPTIONS
     IMPORT_LIBS
   )
-  cmake_parse_arguments(DEPENDS "" "${oneValueArgs}" "${multiValueArgs}" "${ARGN}")
+  cmake_parse_arguments(DEPENDS "${optionValueArgs}" "${oneValueArgs}" "${multiValueArgs}" "${ARGN}")
   
   if(NOT DEPENDS_TARGET)
     message(FATAL_ERROR "specify target name.")
@@ -56,7 +57,7 @@ function ( add_git_dependency )
   if(NOT DEPENDS_TARGET_TYPE)
     set(DEPENDS_TARGET_TYPE PUBLIC)
   endif()
-  
+
   cpmfindpackage (
     NAME  
       ${DEPENDS_NAME}
@@ -69,16 +70,24 @@ function ( add_git_dependency )
     OPTIONS
       ${DEPENDS_OPTIONS}
   )
+  
   foreach( target ${DEPENDS_IMPORT_LIBS})
     get_target_property(target_type_${target} ${target} TYPE)
+    get_target_property(target_aliased ${target} ALIASED_TARGET)
+    if(TARGET ${target_aliased})
+      set(target ${target_aliased})
+    endif()
 
     if(TARGET ${target} AND NOT ${target_type_${target}} STREQUAL "INTERFACE_LIBRARY")
       set_target_properties(${target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${DEPENDS_OUTPUT_DIRECTORY}"
-                                                 RUNTIME_OUTPUT_DIRECTORY "${DEPENDS_OUTPUT_DIRECTORY}")
+                                                 RUNTIME_OUTPUT_DIRECTORY "${DEPENDS_OUTPUT_DIRECTORY}"
+                                                 
+                                                 )
     endif()
   endforeach()
                                           
   target_link_libraries(${DEPENDS_TARGET} ${DEPENDS_TARGET_ACCESS} ${DEPENDS_IMPORT_LIBS})
+  unset(BUILD_SHARED_LIBS_SETUP)
 endfunction()
   
   

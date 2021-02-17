@@ -32,6 +32,14 @@ add_target(
 target_compile_features(propertysdk PUBLIC cxx_std_17)
 
 if(CLANG_TIDY_FOUND)
+
+  if(BUILD_PROPERTYSDK_CLANG_TIDY_AUTO)
+    set(CLANG_TIDY_AUTO_ENABLED CLANG_TIDY_AUTO)
+  endif()
+  if(BUILD_PROPERTYSDK_CLANG_TIDY_FIX)
+    set(CLANG_TIDY_FIX_ENABLED CLANG_TIDY_FIX)
+  endif()
+  
   clang_tidy(
     TARGET 
       ${PROPERTYSDK_NAME}
@@ -40,6 +48,8 @@ if(CLANG_TIDY_FOUND)
     SOURCES
       serialize_node.cpp
       property.cpp
+    ${CLANG_TIDY_AUTO_ENABLED}
+    ${BUILD_CLANG_TIDY_FIX}
   )
 endif()
 

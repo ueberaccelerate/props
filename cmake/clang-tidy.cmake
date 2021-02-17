@@ -5,17 +5,15 @@ endif()
 
 set_property(GLOBAL PROPERTY CLANG_TIDY_INITIALIZED true)
 
-option (CLANG_TIDY_AUTO "Enable clang-tidy auto checking" ON)
-option (CLANG_TIDY_FIX "Auto fix errors" OFF)
-
 find_program(CLANG_TIDY clang-tidy)
 if(NOT CLANG_TIDY)
   message(STATUS "Did not find clang-tidy, target tidy is disabled.")
 
   function(clang_tidy)
+    set(optionValueArgs CLANG_TIDY_AUTO CLANG_TIDY_FIX )
     set(oneValueArgs TARGET )
     set(multiValueArgs INCLUDE_DIRECTORIES SOURCES)
-    cmake_parse_arguments(CT "" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(CT "${optionValueArgs}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
   endfunction()
 else()
   message(STATUS "Found clang-tidy, use \"make tidy\" to run it.")
@@ -31,15 +29,16 @@ else()
 
   set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
   function(clang_tidy)
+    set(optionValueArgs CLANG_TIDY_AUTO CLANG_TIDY_FIX )
     set(oneValueArgs TARGET )
     set(multiValueArgs INCLUDE_DIRECTORIES SOURCES)
-    cmake_parse_arguments(CT "" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(CT "${optionValueArgs}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     
     if(EXISTS ${PROJECT_BINARY_DIR}/compile_commands.json)
       list(APPEND CLANG_TIDY_FLAGS -p ${PROJECT_BINARY_DIR}/compile_commands.json)
     endif()
     
-    if(CLANG_TIDY_FIX)
+    if(CT_CLANG_TIDY_FIX)
       list(APPEND CLANG_TIDY_FLAGS -fix)
     endif()
     
@@ -51,9 +50,17 @@ else()
     get_target_property(LINK_TARGETS ${CT_TARGET} LINK_LIBRARIES)
 
     foreach(target ${LINK_TARGETS})
+
       if( TARGET ${target} )
+        get_target_property(target_type_${target} ${target} TYPE)
+        get_target_property(target_aliased ${target} ALIASED_TARGET)
+        if(TARGET ${target_aliased})
+          set(target ${target_aliased})
+        endif()
         get_target_property(interface_dirs ${target} INTERFACE_INCLUDE_DIRECTORIES)
-        get_target_property(dirs ${target} INTERFACE_INCLUDE_DIRECTORIES)
+        if( NOT ${target_type_${target}} STREQUAL "INTERFACE_LIBRARY")
+          get_target_property(dirs ${target} INCLUDE_DIRECTORIES)
+        endif()
         
         if(interface_dirs)
           list(APPEND CT_INCLUDE_DIRECTORIES ${interface_dirs})
@@ -85,7 +92,7 @@ else()
       COMMAND_EXPAND_LISTS
       )
       
-    if(CLANG_TIDY_AUTO)
+    if(CT_CLANG_TIDY_AUTO)
       add_dependencies(${CT_TARGET} tidy_${CT_TARGET})
     endif()
   endfunction()

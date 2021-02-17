@@ -17,8 +17,12 @@ set(PROPERTYSDK_OUTPUT_DIR
 configure_file(${PROPERTYSDK_SOURCE_DIR}/version.hpp.in ${PROPERTYSDK_SOURCE_DIR}/include/${PROPERTYSDK_NAME}/version.hpp)
 
 option(BUILD_SHARED_LIBS "The shared library" ON)
-option(PROPERTYSDK_EXAMPLE "Enable examples" ON)
-option(PROPERTYSDK_TEST "Build feature_traker test" ON)
+option(BUILD_PROPERTYSDK_CLANG_TIDY_AUTO     "Enable auto clang-tidy" OFF)
+option(BUILD_PROPERTYSDK_CLANG_TIDY_FIX      "Enable autofix clang-tidy" OFF)
+
+option(BUILD_PROPERTYSDK_EXAMPLE "Enable examples" OFF)
+option(BUILD_PROPERTYSDK_TEST "Build feature_traker test" OFF)
+
 
 if(MSVC)
   if(BUILD_SHARED_LIBS)
@@ -47,7 +51,7 @@ include(depends)
 add_subdirectory(src)
 
 # example
-if(PROPERTYSDK_EXAMPLE)
+if(BUILD_PROPERTYSDK_EXAMPLE)
   add_subdirectory(example)
 endif()
 
@@ -55,8 +59,8 @@ log(TEXT
     "Target name                                    ${PROPERTYSDK_NAME}"
     "Target config                              --> ${CMAKE_BUILD_TYPE}"
     "Build shared library                       --> ${BUILD_SHARED_LIBS}"
-    "Build feature_traker examples                  ${PROPERTYSDK_EXAMPLE}"
-    "Build feature_traker test                      ${PROPERTYSDK_TEST}"
-    "Auto clang-tidy                                ${PROPERTYSDK_AUTO_CLANG_TIDY}"
-    "Auto clang-format                              ${PROPERTYSDK_AUTO_CLANG_FORMAT}"
+    "Build feature_traker examples                  ${BUILD_PROPERTYSDK_EXAMPLE}"
+    "Build feature_traker test                      ${BUILD_PROPERTYSDK_TEST}"
+    "Auto clang-tidy                                ${BUILD_PROPERTYSDK_CLANG_TIDY_AUTO}"
+    "Auto clang-format                              ${BUILD_PROPERTYSDK_CLANG_TIDY_FIX}"
     SUMMARIZE)

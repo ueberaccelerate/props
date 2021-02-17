@@ -13,7 +13,7 @@ function ( add_git_dependency )
   set(oneValueArgs
     TARGET
     TARGET_ACCESS
-    OUTPUT_DIRECTORY
+    BINARY_DIRECTORY
     NAME
     GIT_TAG
     GITHUB_REPOSITORY
@@ -79,8 +79,8 @@ function ( add_git_dependency )
     endif()
 
     if(TARGET ${target} AND NOT ${target_type_${target}} STREQUAL "INTERFACE_LIBRARY")
-      set_target_properties(${target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${DEPENDS_OUTPUT_DIRECTORY}"
-                                                 RUNTIME_OUTPUT_DIRECTORY "${DEPENDS_OUTPUT_DIRECTORY}"
+      set_target_properties(${target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${DEPENDS_BINARY_DIRECTORY}"
+                                                 RUNTIME_OUTPUT_DIRECTORY "${DEPENDS_BINARY_DIRECTORY}"
                                                  
                                                  )
     endif()

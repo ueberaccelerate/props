@@ -7,6 +7,9 @@ set_property(GLOBAL PROPERTY UTILS_INITIALIZED true)
 
 include(GNUInstallDirs)
 
+##
+## log
+##
 function(log)
   set(options SUMMARIZE)
   set(multiValueArgs TEXT)
@@ -24,21 +27,36 @@ function(log)
   endif()
 endfunction()
 
+##
+## add_target
+##
 function(add_target)
   set(optionsArgs EXECUTABLE EXPORTED)
-  set(oneValueArgs TARGET PREFIX PUBLIC_PREFIX BINARY_DIRECTORY VERSION )
+  set(oneValueArgs 
+    TARGET 
+    PREFIX 
+    FOLDER
+    PUBLIC_PREFIX 
+    BINARY_DIRECTORY 
+    VERSION )
   set(multiValueArgs
-      PUBLIC_HEADER
-      PRIVATE_HEADER
-      SOURCES
-      PUBLIC_LINKS
-      PRIVATE_LINKS)
+    PUBLIC_HEADER
+    PRIVATE_HEADER
+	PUBLIC_INCLUDE_DIRECTORIES
+	PRIVATE_INCLUDE_DIRECTORIES
+    SOURCES
+    PUBLIC_LINKS
+    PRIVATE_LINKS)
   cmake_parse_arguments(FT "${optionsArgs}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
   
+  set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
   if(NOT FT_PREFIX)
     set(FT_PREFIX ${CMAKE_CURRENT_SOURCE_DIR})
   endif()
-  
+  if(NOT FT_PUBLIC_PREFIX)
+    set(FT_PUBLIC_PREFIX ${PROJECT_SOURCE_DIR}/include)
+  endif()
 
 
   foreach(src ${FT_PUBLIC_HEADER})
@@ -64,7 +82,11 @@ function(add_target)
       ${FT_PRIVATE_HEADER_WITH_PREFIX} 
       ${FT_PUBLIC_HEADER_WITH_PREFIX} ${FT_SOURCE_WITH_PREFIX})
   endif()
-
+  
+  if(FT_FOLDER) 
+    set_property(TARGET ${FT_TARGET} PROPERTY FOLDER ${FT_FOLDER})
+  endif()
+  
   if(FT_BINARY_DIRECTORY)
     set_target_properties(${FT_TARGET} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${FT_BINARY_DIRECTORY}"
                                                   RUNTIME_OUTPUT_DIRECTORY "${FT_BINARY_DIRECTORY}")
@@ -78,6 +100,9 @@ function(add_target)
   PUBLIC 
     $<BUILD_INTERFACE:${FT_PUBLIC_PREFIX}>
     $<INSTALL_INTERFACE:include> 
+	${FT_PUBLIC_INCLUDE_DIRECTORIES}
+  PRIVATE
+	${FT_PRIVATE_INCLUDE_DIRECTORIES}
   )
 
   target_link_libraries(

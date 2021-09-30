@@ -51,43 +51,43 @@ endif()
 
 
 # install headers
-include(CMakePackageConfigHelpers)
-
-configure_package_config_file( 
-  "${PROPERTYSDK_SOURCE_DIR}/cmake/${PROPERTYSDK_NAME}.cmake.in" 
-  "${PROPERTYSDK_NAME}Config.cmake"
-  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROPERTYSDK_NAME})
-  
-   
-install(
-  DIRECTORY ${PROPERTYSDK_SOURCE_DIR}/include/${PROPERTYSDK_NAME}
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-  FILES_MATCHING
-  PATTERN "*.h"
-  PATTERN "*.hpp")
-# install targets
-
-
-install(
-  EXPORT ${PROJECT_NAME}-targets
-  NAMESPACE ${PROPERTYSDK_NAME}::
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROPERTYSDK_NAME}
-  FILE ${PROPERTYSDK_NAME}-targets.cmake)
-  
-# Install Config and ConfigVersion files
-install(
-  FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROPERTYSDK_NAME}Config.cmake"
-        "${CMAKE_CURRENT_BINARY_DIR}/${PROPERTYSDK_NAME}ConfigVersion.cmake"
-  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROPERTYSDK_NAME}"
-)
-
-
-
-write_basic_package_version_file(
-  ${CMAKE_CURRENT_BINARY_DIR}/${PROPERTYSDK_NAME}ConfigVersion.cmake
-  VERSION ${PROPERTYSDK_VERSION}
-  COMPATIBILITY SameMajorVersion
-  )
-  
-# this exports the targets only to be used for the in-tree compilation, do not export this
-export(EXPORT ${PROJECT_NAME}-targets FILE "${CMAKE_INSTALL_LIBDIR}/cmake/${PROPERTYSDK_NAME}/${PROPERTYSDK_NAME}-targets.cmake")
+#include(CMakePackageConfigHelpers)
+#
+#configure_package_config_file( 
+#  "${PROPERTYSDK_SOURCE_DIR}/cmake/${PROPERTYSDK_NAME}.cmake.in" 
+#  "${PROPERTYSDK_NAME}Config.cmake"
+#  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROPERTYSDK_NAME})
+#  
+#   
+#install(
+#  DIRECTORY ${PROPERTYSDK_SOURCE_DIR}/include/${PROPERTYSDK_NAME}
+#  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+#  FILES_MATCHING
+#  PATTERN "*.h"
+#  PATTERN "*.hpp")
+## install targets
+#
+#
+#install(
+#  EXPORT ${PROJECT_NAME}-targets
+#  NAMESPACE ${PROPERTYSDK_NAME}::
+#  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROPERTYSDK_NAME}
+#  FILE ${PROPERTYSDK_NAME}-targets.cmake)
+#  
+## Install Config and ConfigVersion files
+#install(
+#  FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROPERTYSDK_NAME}Config.cmake"
+#        "${CMAKE_CURRENT_BINARY_DIR}/${PROPERTYSDK_NAME}ConfigVersion.cmake"
+#  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROPERTYSDK_NAME}"
+#)
+#
+#
+#
+#write_basic_package_version_file(
+#  ${CMAKE_CURRENT_BINARY_DIR}/${PROPERTYSDK_NAME}ConfigVersion.cmake
+#  VERSION ${PROPERTYSDK_VERSION}
+#  COMPATIBILITY SameMajorVersion
+#  )
+#  
+## this exports the targets only to be used for the in-tree compilation, do not export this
+#export(EXPORT ${PROJECT_NAME}-targets FILE "${CMAKE_INSTALL_LIBDIR}/cmake/${PROPERTYSDK_NAME}/${PROPERTYSDK_NAME}-targets.cmake")
